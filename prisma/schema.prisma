@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orders    Order[]
+  wishlist  Product[] @relation("UserWishlist")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  discountPercentage Float?
+  image       String
+  category    String
+  stock       Int
+  rating      Float
+  reviews     Int
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  orderItems  OrderItem[]
+  wishedBy     User[]      @relation("UserWishlist")
+}
+
+model ShippingMethod {
+  id        String  @id @default(cuid())
+  name      String
+  price     Float
+  estimated String
+  orders    Order[]
+}
+
+model PaymentMethod {
+  id     String  @id @default(cuid())
+  name   String
+  icon   String
+  orders Order[]
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  userId          String?
+  total           Float
+  subtotal        Float
+  shippingCost    Float
+  email           String?
+  firstName       String?
+  lastName        String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  status          String        @default("pending") // pending, processing, shipped, delivered
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  discountCode String?
+  discountAmount Float?
+
+  shippingMethod  ShippingMethod @relation(fields: [shippingMethodId], references: [id])
+  shippingMethodId String
+  
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId String
+  
+  items           OrderItem[]
+  user            User?        @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  price     Float
+  
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+}

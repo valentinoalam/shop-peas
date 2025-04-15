@@ -1,0 +1,96 @@
+https://www.linkedin.com/shareArticle?mini=true&url={articleUrl}&title={articleTitle}&summary={articleSummary}&source={articleSource}
+
+https://www.linkedin.com/sharing/share-offsite/?url={url}
+Make sure url is encoded, using something like fixedEncodeURIComponent().
+
+<a href="https://www.linkedin.com/shareArticle?mini=true&url=http://chillyfacts.com/create-linkedin-share-button-on-website-webpages&title=Create LinkedIn Share button on Website Webpages&summary=chillyfacts.com&source=Chillyfacts" onclick="window.open(this.href, 'mywin', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;">
+  <img src="http://chillyfacts.com/wp-content/uploads/2017/06/LinkedIN.gif" alt="" width="54" height="20" />
+</a>
+
+
+In 2024
+Mobile
+If you want to start LinkedIn mobile app and create new post use this link
+https://www.linkedin.com/shareArticle?mini=true&url={url}&text={text}
+text: for post content
+url: link included with the post
+
+Tested using url_launcher in Flutter mobile app
+
+Web
+Only url param in working with this link:
+https://www.linkedin.com/sharing/share-offsite/?url={url}
+
+
+$(".IN-widget span:first-of-type").css({
+                'border': '2px solid #DCDCDC',
+                '-webkit-border-radius': '3px',
+                '-moz-border-radius': '3px',
+                'border-radius': '3px'
+                });
+
+
+<a href="https://www.linkedin.com/shareArticle?mini=true&url=https://chillyfacts.com/create-linkedin-share-button-on-website-webpages&title=Create LinkedIn Share button on Website Webpages&summary=chillyfacts.com&source=Chillyfacts" onclick="window.open(this.href, 'mywin',
+'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" ><img src="https://chillyfacts.com/wp-content/uploads/2017/06/LinkedIN.gif" alt="" width="54" height="20" /></a>
+
+<a href="https://www.linkedin.com/shareArticle?mini=true&url=https://chillyfacts.com/create-linkedin-share-button-on-website-webpages&title=Create LinkedIn Share button on Website Webpages&summary=chillyfacts.com&source=Chillyfacts">Share on LinkedIn</a>
+
+
+<script src="https://platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<script type="IN/Share" data-url="https://www.linkedin.com"></script>
+
+
+Here are the image requirements specific to the LinkedIn sharing module:
+Max file size: 5 MB
+Minimum image dimensions: 1200 (w) x 627 (h) pixels
+Recommended ratio: 1.91:1
+The image specifications for single image ads are:
+
+File types: JPG, PNG, or GIF
+
+Animated GIF images must be 300 frames or shorter
+Maximum file size: 5 MB
+
+Maximum image size: 7680 x 4320 pixels
+
+Image aspect ratios:
+
+Horizontal/landscape: 1.91:1 (recommended ratio)
+Minimum: 640 x 360 pixels
+Maximum: 7680 x 4320 pixels
+Square: 1:1
+Minimum: 360 x 360 pixels
+Maximum: 4320 x 4320 pixels
+Vertical: 1:1.91 (recommended ratio)
+Minimum: 360 x 640 pixels
+Maximum: 2340 x 4320 pixels
+
+
+
+
+2a. Create a link for users to directly add your Certification to their profiles
+
+The bolded text below should be modified according to your own custom information.
+
+
+If you choose to include ‘organizationId’, create a URL using the following format:
+
+https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Test%20Certificate&organizationId=1337&issueYear=2018&
+issueMonth=2&expirationYear=2020&expirationMonth=5&certUrl=https%3A%2F%2Fdocs.microsoft.com
+%2Fen-us%2Flearn%2Fcertifications%2Fd365-functional-consultant-sales&certId=1234
+
+If you choose to include ‘organizationName’, create a URL using the following format:
+
+
+https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Test%20Certificate&organizationName=LinkedIn&issueYear
+=2018&issueMonth=2&expirationYear=2020&expirationMonth=5&certUrl=https%3A%2F%2Fdocs.
+microsoft.com%2Fen-us%2Flearn%2Fcertifications%2Fd365-functional-consultant-sales&certId=1234
+
+2b. Build a “Add to profile” button into your emails or website
+
+Note that the bolded text below should be modified according to the link you created above
+
+
+<div><a href="https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Test%20Certificate&organizationId=1337&issueYear=2018
+&issueMonth=2&expirationYear=2020&expirationMonth=5&certUrl=
+https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Flearn%2Fcertifications%2Fd365-functional-consultant-sales&certId=1234"><img src="https://download.linkedin.com/desktop/add2profile/buttons/en_US.png " alt="LinkedIn Add to Profile button"></a></div>

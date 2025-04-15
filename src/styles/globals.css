@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap')
+layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap')
+layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300..700&display=swap')
+layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap')
+layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap')
+layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap')
+layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Wet+Paint&display=swap')
+layer(base);
+
+@import "tailwindcss";
+
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-animated";
+
+@import "./theme.css";
+@import "./base.css";
+@import "./components.css";
+@import "./utilities.css";
+@import './divider.css';
+@import './App.css';
+
+input:checked ~ .toggle_dot {
+  transform: translateX(100%);
+  background-color: #0082c8;
+}
+.toggle_dot {
+  top: -.25rem;
+  transition: all 0.3s ease-in-out;
+}
+
+
+/* Target Leaflet container with proper class selector */
+.leaflet-container {
+  @apply font-sans rounded-lg;
+}
+
+/* Style popup wrapper */
+.leaflet-popup-content-wrapper {
+  @apply rounded-lg shadow-lg px-1;
+}
+
+/* Style popup tip */
+.leaflet-popup-tip {
+  @apply bg-white shadow-lg;
+}
+
+/* Control container */
+.leaflet-control {
+  @apply shadow-md;
+}
+
+/* Zoom controls - separate selectors */
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  @apply bg-map-control hover:bg-gray-100 border-map-controlBorder;
+}
+
+/* Active marker animation */
+.active-marker {
+  filter: hue-rotate(150deg) brightness(1.2);
+  z-index: 1000 !important; 
+  animation: bounce 0.5s ease-in-out;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+}
