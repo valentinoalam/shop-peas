@@ -224,6 +224,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [paymentMethod, setPaymentMethod] = useState("credit")
   const { toast } = useToast()
 
+  // Queue for toast notifications
+  const [toastQueue, setToastQueue] = useState<Array<{
+    variant?: 'destructive',
+    title: string,
+    description: string
+  }>>([]);
+   // Process toast queue
+   useEffect(() => {
+    if (toastQueue.length > 0) {
+      const nextToast = toastQueue[0];
+      toast(nextToast);
+      setToastQueue(prev => prev.slice(1));
+    }
+  }, [toastQueue, toast]);
   // Calculate subtotal
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   
@@ -263,95 +277,89 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setShippingCost(prev => prev + 3.99)
     }
   }, [shippingMethod, subtotal, itemCount])
-
   const addToCart = (product: Product, quantity = 1) => {
     setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.product.id === product.id)
+      const existingItem = prevItems.find(item => item.product.id === product.id);
       
       if (existingItem) {
-        // Check if adding would exceed available stock
         if (existingItem.quantity + quantity > product.stock) {
-          toast({
+          setToastQueue(prev => [...prev, {
+            variant: 'destructive',
             title: "Maximum stock reached",
-            description: `Sorry, only ${product.stock} items available.`,
-            variant: "destructive"
-          })
+            description: `Sorry, only ${product.stock} items available.`
+          }]);
           return prevItems.map(item => 
             item.product.id === product.id 
               ? { ...item, quantity: product.stock } 
               : item
-          )
+          );
         }
 
-        // Update quantity if item exists
-        toast({
+        setToastQueue(prev => [...prev, {
           title: "Cart updated",
           description: `${product.name} quantity updated in your cart.`
-        })
+        }]);
         return prevItems.map(item => 
           item.product.id === product.id 
             ? { ...item, quantity: item.quantity + quantity } 
             : item
-        )
+        );
       } else {
-        // Add new item if it doesn't exist
-        toast({
+        setToastQueue(prev => [...prev, {
           title: "Added to cart",
           description: `${product.name} added to your cart.`
-        })
-        return [...prevItems, { product, quantity }]
+        }]);
+        return [...prevItems, { product, quantity }];
       }
-    })
-  }
+    });
+  };
 
   const removeFromCart = (productId: string) => {
     setItems(prevItems => {
-      const product = prevItems.find(item => item.product.id === productId)?.product
+      const product = prevItems.find(item => item.product.id === productId)?.product;
       if (product) {
-        toast({
+        setToastQueue(prev => [...prev, {
           title: "Removed from cart",
           description: `${product.name} removed from your cart.`
-        })
+        }]);
       }
-      return prevItems.filter(item => item.product.id !== productId)
-    })
-  }
+      return prevItems.filter(item => item.product.id !== productId);
+    });
+  };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity < 1) {
-      return removeFromCart(productId)
-    }
+    if (quantity < 1) return removeFromCart(productId);
     
     setItems(prevItems => {
-      const item = prevItems.find(item => item.product.id === productId)
+      const item = prevItems.find(item => item.product.id === productId);
       
       if (item && quantity > item.product.stock) {
-        toast({
+        setToastQueue(prev => [...prev, {
+          variant: 'destructive',
           title: "Maximum stock reached",
-          description: `Sorry, only ${item.product.stock} items available.`,
-          variant: "destructive"
-        })
+          description: `Sorry, only ${item.product.stock} items available.`
+        }]);
         return prevItems.map(item => 
           item.product.id === productId 
             ? { ...item, quantity: item.product.stock } 
             : item
-        )
+        );
       }
       
       return prevItems.map(item => 
         item.product.id === productId ? { ...item, quantity } : item
-      )
-    })
-  }
+      );
+    });
+  };
 
   const clearCart = () => {
-    setItems([])
-    toast({
+    setItems([]);
+    setToastQueue(prev => [...prev, {
       title: "Cart cleared",
       description: "All items have been removed from your cart."
-    })
-  }
-
+    }]);
+  };
+  
   return (
     <CartContext.Provider
       value={{

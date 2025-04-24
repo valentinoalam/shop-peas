@@ -14,7 +14,7 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map(product => (
         //   <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-        //     <Link href={`/product/${product.id}`}>
+        //     <Link href={`/products/${product.id}`}>
         //       <div className="h-48 relative overflow-hidden">
         //         <Image 
         //           fill 

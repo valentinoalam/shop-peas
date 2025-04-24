@@ -21,16 +21,26 @@ async function getFeaturedProducts() {
       featured: true,
     },
     take: 4,
+    include: {
+      category: true, // Essential to get category name
+      reviews: {      // Needed ONLY if you calculate review count here
+         select: { id: true } // Select only 'id' for counting to be efficient
+      },
+    }
   });
 }
-
-async function getCategories() {
-  return prisma.product.findMany({
-    select: {
-      category: true,
+prisma.product.findMany({
+  include: {
+    category: true, // Essential to get category name
+    reviews: {      // Needed ONLY if you calculate review count here
+       select: { id: true } // Select only 'id' for counting to be efficient
     },
-    distinct: ['category'],
-  });
+    // 'ratings' might not be needed if 'rating' field is reliably updated average
+  }
+});
+async function getCategories() {
+  const categories = await prisma.category.findMany()
+  return categories.map(c => c.name)
 }
 
 export default async function Home() {
@@ -107,17 +117,17 @@ export default async function Home() {
             {categories.map(category => (
               <Link 
                 href={`/products?category=${category}`} 
-                key={category.category}
+                key={category}
                 className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105"
               >
                 <div className="relative h-48">
                   <Image fill
                     src="/placeholder.svg"
-                    alt={category.category}
+                    alt={category}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <h3 className="text-white text-xl font-bold">{category.category}</h3>
+                    <h3 className="text-white text-xl font-bold">{category}</h3>
                   </div>
                 </div>
               </Link>

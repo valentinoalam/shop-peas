@@ -47,6 +47,14 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'inline',
     // contentSecurityPolicy: "default-src 'self'; script-src 'self'; sandbox allow-scripts;",
   },
+  async rewrites() {
+    return [
+      {
+        source: '/:slug',
+        destination: '/category/:slug',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

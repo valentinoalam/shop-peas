@@ -1,4 +1,4 @@
-// 'use client'
+'use client'
 // import { useState } from "react";
 
 // import Navbar from "@/components/Navbar";
@@ -106,7 +106,7 @@
 //                         {items.map((item) => (
 //                           <TableRow key={item.product.id}>
 //                             <TableCell>
-//                               <Link to={`/product/${item.product.id}`}>
+//                               <Link to={`/products/${item.product.id}`}>
 //                                 <img 
 //                                   src={item.product.image} 
 //                                   alt={item.product.name}
@@ -116,7 +116,7 @@
 //                             </TableCell>
 //                             <TableCell>
 //                               <Link 
-//                                 to={`/product/${item.product.id}`}
+//                                 to={`/products/${item.product.id}`}
 //                                 className="font-medium hover:text-shop-primary"
 //                               >
 //                                 {item.product.name}
@@ -263,7 +263,9 @@
 // };
 
 // export default CartPage;
-
+// import { getServerSession } from "next-auth/next"
+// import { authOptions } from "@/lib/auth"
+// import { redirect } from "next/navigation"
 import Link from 'next/link'
 import { useCart } from '@/context/cart-context'
 import { Button } from '@/components/ui/button'
@@ -334,7 +336,7 @@ export default function CartPage() {
               
               <div className="flex-grow">
                 <div className="flex justify-between">
-                  <Link href={`/product/${item.product.id}`}>
+                  <Link href={`/products/${item.product.id}`}>
                     <h3 className="font-medium hover:text-blue-600">{item.product.name}</h3>
                   </Link>
                   <p className="font-bold">${(item.product.price * item.quantity).toFixed(2)}</p>

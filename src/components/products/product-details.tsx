@@ -1,22 +1,31 @@
-// src/app/product/[id]/components/product-details.tsx
+// src/app/products/[id]/components/product-details.tsx
 'use client'
 
 import { useState } from 'react'
-import { Product } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { Star, ShoppingCart, MinusCircle, PlusCircle, Truck, RefreshCw, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/context/cart-context'
 import { Card, CardContent } from '../ui/card'
 import { Separator } from '../ui/separator'
 
+export type ProductWithDetails = Prisma.ProductGetPayload<{
+  include: {
+    category: true;
+    reviews: { select: { id: true } }; // Include reviews just for counting
+    // Include other relations if needed by the card, e.g., ratings if 'rating' field isn't populated
+  }
+}>
 interface ProductDetailsProps {
-  product: Product
+  product: ProductWithDetails
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1)
   const { addToCart } = useCart()
-  
+  const categoryName = product.category?.name ?? 'Uncategorized';
+  const reviewCount = product.reviews?.length ?? 0;
+  const averageRating = product.rating ?? 0;
   const incrementQuantity = () => {
     if (quantity < product.stock) {
       setQuantity(quantity + 1)
@@ -35,7 +44,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-gray-500">{product.category}</div>
+      <div className="text-sm text-gray-500">{categoryName}</div>
       <h1 className="text-3xl font-bold">{product.name}</h1>
       
       <div className="flex items-center">
@@ -46,7 +55,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <Star 
                 key={i} 
                 className={`h-5 w-5 ${
-                i < Math.floor(product.rating) 
+                i < Math.floor(averageRating) 
                     ? "fill-yellow-400 text-yellow-400" 
                     : "text-gray-300"
                 }`} 
@@ -54,7 +63,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           ))}
         </div>
         <span className="mx-2 text-gray-300">|</span>
-        <span className="text-sm text-gray-500">{product.reviews} reviews</span>
+        <span className="text-sm text-gray-500">{reviewCount} reviews</span>
       </div>
       
       <div className="text-2xl font-bold">${product.price.toFixed(2)}</div>

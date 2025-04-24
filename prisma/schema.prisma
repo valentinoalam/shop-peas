@@ -14,34 +14,171 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING     // Order placed, payment not yet confirmed/processed
+  PROCESSING  // Payment confirmed, order being prepared
+  SHIPPED     // Order handed over to carrier
+  DELIVERED   // Order successfully delivered
+  CANCELLED   // Order cancelled
+  FAILED      // Payment failed or other issue
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+enum DiscountType {
+  PERCENTAGE    // e.g., 10% off
+  FIXED_AMOUNT  // e.g., $5 off
+}
 model User {
   id        String    @id @default(cuid())
   name      String
   email     String    @unique
   password  String
+
+  role      UserRole   @default(CUSTOMER)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
   orders    Order[]
   wishlist  Product[] @relation("UserWishlist")
+  reviews   Review[]
+  ratings   Rating[]
+  address   Address[]
+  @@index([email])
+  Comment Comment[]
+  Cart Cart[]
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+
+  address      String
+  longitude    String
+  latitude     String
+  postalCode   String? @map("postal_code")
+
+  isDeleted    Boolean   @default(false) @map("is_deleted")
+  userCreated  String?   @map("user_created")
+  userModified String?   @map("user_modified")
+  dtCreated    DateTime  @default(now()) @map("date_created")
+  dtModified   DateTime? @updatedAt @map("date_modified")
+
+  user           User    @relation(fields: [userId], references: [id])
+  ordersShipping Order[] @relation("ShippingAddress")
+  ordersBilling  Order[] @relation("BillingAddress")
+
+  @@index([userId])
 }
 
 model Product {
   id          String   @id @default(cuid())
+  categoryId  Int
   name        String
+  slug        String   @unique
   description String
   price       Float
+  weight      Float
   discountPercentage Float?
   image       String
-  category    String
   stock       Int
-  rating      Float
-  reviews     Int
+  rating      Float 
   featured    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
+  category    Category    @relation(fields: [categoryId], references: [id])
   orderItems  OrderItem[]
-  wishedBy     User[]      @relation("UserWishlist")
+  wishedBy    User[]      @relation("UserWishlist")
+  reviews     Review[]
+  ratings     Rating[]
+
+  @@index([slug])
+  @@index([categoryId])
+  CartItem CartItem[]
+}
+
+model Category {
+  id                      Int    @id @default(autoincrement())
+  name                    String                   @unique
+  slug                    String                   @unique
+  description             String?                  
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime?                @updatedAt
+
+  product Product[]
+  @@index([slug])
+}
+model Discount {
+  id           String       @id @default(cuid())
+  code         String       @unique // The code users will enter (e.g., "SUMMER10")
+  description  String?
+  type         DiscountType // Percentage or fixed amount
+  value        Decimal      //@db.Decimal(10, 2) // The percentage (e.g., 10.00 for 10%) or fixed amount (e.g., 5.00 for $5)
+  isActive     Boolean      @default(true)
+  startDate    DateTime?    // Optional start date for the discount validity
+  endDate      DateTime?    // Optional end date for the discount validity
+  minOrderAmount Decimal?   //@db.Decimal(10, 2) // Optional: Minimum order subtotal to qualify
+  maxUses      Int?         // Optional: Maximum total number of times this code can be used
+  usesCount    Int          @default(0) // How many times this code has been used
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  orders Order[] // Which orders used this discount
+
+  @@index([code])
+  @@index([isActive, startDate, endDate]) // For finding active discounts
+}
+model Review {
+  id        String    @id @default(cuid()) // ID unik untuk review
+  comment   String    //@db.Text // Isi komentar/ulasan
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relasi: Review ini ditulis oleh satu User
+  userId    String    // Foreign Key ke User
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade) // Jika User dihapus, Review ikut terhapus
+
+  // Relasi: Review ini tentang satu Produk
+  productId String    // Foreign Key ke Product
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade) // Jika Product dihapus, Review ikut terhapus
+
+  // Index untuk mempercepat query berdasarkan User atau Produk
+  @@index([userId])
+  @@index([productId])
+  // Opsional: Membuat kombinasi user dan produk unik jika user hanya boleh review 1x per produk
+  // @@unique([userId, productId])
+}
+
+// Model untuk Rating Produk
+model Rating {
+  id        String    @id @default(cuid()) // ID unik untuk rating
+  value     Int       // Nilai rating (misal: 1 sampai 5)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relasi: Rating ini diberikan oleh satu User
+  userId    String    // Foreign Key ke User
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade) // Jika User dihapus, Rating ikut terhapus
+
+  // Relasi: Rating ini untuk satu Produk
+  productId String    // Foreign Key ke Product
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade) // Jika Product dihapus, Rating ikut terhapus
+
+  // Membuat kombinasi User dan Produk unik: Satu User hanya bisa memberi satu Rating per Produk
+  @@unique([userId, productId])
+  // Index untuk mempercepat query berdasarkan User atau Produk
+  @@index([userId])
+  @@index([productId])
 }
 
 model ShippingMethod {
@@ -60,33 +197,43 @@ model PaymentMethod {
 }
 
 model Order {
-  id              String        @id @default(cuid())
-  userId          String?
-  total           Float
-  subtotal        Float
-  shippingCost    Float
-  email           String?
-  firstName       String?
-  lastName        String?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?
-  status          String        @default("pending") // pending, processing, shipped, delivered
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  userId            String?
+  total             Float
+  subtotal          Float
+  shippingCost      Float
+  email             String?
+  firstName         String?
+  lastName          String?
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?
+  shippingAddressId String?
+  billingAddressId  String?
 
-  discountCode String?
-  discountAmount Float?
+  shippingAddress   Address? @relation("ShippingAddress", fields: [shippingAddressId], references: [id], onDelete: Restrict)
+  billingAddress    Address? @relation("BillingAddress", fields: [billingAddressId], references: [id], onDelete: Restrict)
 
-  shippingMethod  ShippingMethod @relation(fields: [shippingMethodId], references: [id])
-  shippingMethodId String
+  status            OrderStatus   @default(PENDING) // pending, processing, shipped, delivered
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  discountCode      String?
+  discountAmount    Float?
+
+  shippingMethod    ShippingMethod @relation(fields: [shippingMethodId], references: [id])
+  shippingMethodId  String
   
-  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
-  paymentMethodId String
+  paymentMethod     PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId   String
   
-  items           OrderItem[]
-  user            User?        @relation(fields: [userId], references: [id])
+  items             OrderItem[]
+  user              User?        @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  discount          Discount[]
 }
 
 model OrderItem {
@@ -99,4 +246,166 @@ model OrderItem {
   
   product   Product @relation(fields: [productId], references: [id])
   productId String
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+
+model Reviews {
+  id      String  @id @default(cuid())
+
+
+  @@map("reviews")
+}
+
+model Ratings {
+  id      String  @id @default(cuid())
+
+  @@map("ratings")
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  content         String    
+  published       Boolean   @default(false)
+  featuredImageUrl String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  author          String
+
+  blogCategoryId  String?
+  blogCategory    BlogCategory? @relation(fields: [blogCategoryId], references: [id], onDelete: SetNull) // If category deleted, set post category to null
+
+  tags     BlogTag[] // Many-to-many relationship with tags
+
+  comments Comment[] // Post can have multiple comments
+
+  @@index([slug])
+  @@index([author])
+  @@index([blogCategoryId])
+  @@index([published, createdAt]) // For listing published posts by date
+}
+
+/// Represents a category for blog posts
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  posts BlogPost[] // Category can have multiple posts
+
+  @@index([slug])
+}
+
+/// Represents a tag for blog posts
+model BlogTag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  posts BlogPost[] // Many-to-many relationship with posts
+
+  @@index([slug])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  postId String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade) // If post deleted, delete comments
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade) // If user deleted, delete their comments (or SetNull if preferred)
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+
+// +++ NEW: CART MODEL +++
+/// Represents a user's shopping cart before checkout
+model Cart {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique // Each user has only one cart
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade) // If user deleted, delete their cart
+
+  items  CartItem[] // A cart holds multiple items
+
+  @@index([userId])
+}
+
+// +++ NEW: CART ITEM MODEL +++
+/// Represents an individual item within a shopping cart
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  createdAt DateTime @default(now()) // Useful to know when item was added
+
+  cartId String
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade) // If cart is deleted, delete its items
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade) // If product is deleted, remove it from carts
+
+  @@index([cartId])
+  @@index([productId])
+  // Optional: Prevent adding the same product twice, enforce uniqueness on cartId+productId
+  // @@unique([cartId, productId])
+}
+
+
+
+model Page {
+  id          String   @id @default(cuid())
+  path        String   @unique
+  title       String
+  description String?
+  keywords    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  analyses    Analysis[]
+}
+
+model Analysis {
+  id              String   @id @default(cuid())
+  pageId          String
+  page            Page     @relation(fields: [pageId], references: [id])
+  content         String
+  focusKeyphrase  String?
+  seoScore        Int
+  readabilityScore Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Redirect {
+  id          String   @id @default(cuid())
+  source      String   @unique
+  destination String
+  permanent   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SchemaMarkup {
+  id          String   @id @default(cuid())
+  pageId      String?
+  type        String   // article, product, faq, etc.
+  data        Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convenience Store Payment Instructions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .progress-bar {
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        
+        .store-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copy-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .copy-btn:hover {
+            background-color: #2563eb;
+        }
+        
+        .copy-btn.copied {
+            background-color: #10b981;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Complete Your Payment</h1>
+                    <p class="text-gray-600">Convenience Store Payment Option</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm font-medium text-gray-500">Step 3 of 3</span>
+                    <div class="w-24 bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Order #ORD-2023-78945</h2>
+                        <p class="text-gray-600">Due: <span class="font-medium">Today, 11:59 PM</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-gray-600">Total Amount</p>
+                        <p class="text-2xl font-bold text-blue-600">¥12,800</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main>
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+                <!-- Payment Method Selection -->
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Selected Payment Method</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-store-alt text-blue-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">Convenience Store Payment</h3>
+                            <p class="text-gray-600 text-sm">Pay at any convenience store nationwide</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Instructions -->
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Payment Instructions</h2>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    Please complete your payment at a convenience store within <span class="font-bold">24 hours</span> to avoid order cancellation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 1 -->
+                    <div class="mb-8">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-600 font-bold">1</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-800">Payment Code</h3>
+                                <p class="text-gray-600">Use this code when making payment at the store</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="text-2xl font-mono font-bold text-gray-800">1234 5678 9012</span>
+                            </div>
+                            <button id="copyCodeBtn" class="copy-btn bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                                <i class="fas fa-copy mr-2"></i>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="mb-8">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-600 font-bold">2</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-800">Visit a Convenience Store</h3>
+                                <p class="text-gray-600">Go to any of these stores to complete your payment</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="store-card bg-white border border-gray-200 rounded-lg p-4 transition-all duration-300 cursor-pointer">
+                                <div class="flex items-center mb-3">
+                                    <div class="bg-red-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-shopping-basket text-red-500"></i>
+                                    </div>
+                                    <h4 class="font-medium">FamilyMart</h4>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">Available at all locations</p>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    <span>Find nearest store</span>
+                                </div>
+                            </div>
+                            
+                            <div class="store-card bg-white border border-gray-200 rounded-lg p-4 transition-all duration-300 cursor-pointer">
+                                <div class="flex items-center mb-3">
+                                    <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-store text-green-500"></i>
+                                    </div>
+                                    <h4 class="font-medium">7-Eleven</h4>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">Available at all locations</p>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    <span>Find nearest store</span>
+                                </div>
+                            </div>
+                            
+                            <div class="store-card bg-white border border-gray-200 rounded-lg p-4 transition-all duration-300 cursor-pointer">
+                                <div class="flex items-center mb-3">
+                                    <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-shopping-cart text-purple-500"></i>
+                                    </div>
+                                    <h4 class="font-medium">Lawson</h4>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">Available at all locations</p>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    <span>Find nearest store</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="mb-6">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-600 font-bold">3</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-800">Complete Payment at Store</h3>
+                                <p class="text-gray-600">Follow these steps at the convenience store</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <div class="flex mb-4 pb-4 border-b border-gray-200">
+                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                    <i class="fas fa-cash-register text-blue-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Go to the payment terminal</h4>
+                                    <p class="text-gray-600 text-sm">Ask staff for "Payment Service" if unsure</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex mb-4 pb-4 border-b border-gray-200">
+                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                    <i class="fas fa-keyboard text-blue-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Enter your payment code</h4>
+                                    <p class="text-gray-600 text-sm">The 12-digit code provided above</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex mb-4 pb-4 border-b border-gray-200">
+                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                    <i class="fas fa-check-circle text-blue-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Confirm payment details</h4>
+                                    <p class="text-gray-600 text-sm">Verify the amount and merchant name</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex">
+                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                    <i class="fas fa-receipt text-blue-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Receive payment receipt</h4>
+                                    <p class="text-gray-600 text-sm">Keep the receipt for your records</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Info -->
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    <span class="font-bold">Important:</span> Your order will be processed only after we receive payment confirmation from the convenience store. This may take up to 30 minutes after payment.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-between gap-4">
+                <button class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium flex items-center justify-center hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-print mr-2"></i>
+                    Print Instructions
+                </button>
+                <button class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Email Instructions
+                </button>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-gray-200">
+            <div class="text-center text-gray-500 text-sm">
+                <p>Need help? Contact our <a href="#" class="text-blue-600 hover:underline">customer support</a></p>
+                <p class="mt-1">© 2023 YourCompany. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Copy payment code functionality
+        const copyCodeBtn = document.getElementById('copyCodeBtn');
+        
+        copyCodeBtn.addEventListener('click', () => {
+            const paymentCode = '1234 5678 9012';
+            navigator.clipboard.writeText(paymentCode).then(() => {
+                // Change button style temporarily
+                copyCodeBtn.classList.add('copied');
+                copyCodeBtn.innerHTML = '<i class="fas fa-check mr-2"></i><span>Copied!</span>';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyCodeBtn.classList.remove('copied');
+                    copyCodeBtn.innerHTML = '<i class="fas fa-copy mr-2"></i><span>Copy</span>';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        });
+        
+        // Simulate loading for store cards
+        document.querySelectorAll('.store-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // In a real app, this would open a map or store locator
+                alert('Store locator would open here in a real application');
+            });
+        });
+    </script>
+</body>
+</html>

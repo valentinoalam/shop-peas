@@ -238,7 +238,7 @@ export const engLandingPageCreationProcess = [
  * 2. Crafting an Irresistible Offer
       Use the Clear Offer Formula:
       "We do X for Y so you can Z without W"
-          - X: Your product/service
+          - X: Your products/service
           - Y: Ideal customer
           - Z: Desired benefit
           - W: Unwanted outcome

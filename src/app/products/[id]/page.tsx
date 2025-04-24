@@ -1,6 +1,4 @@
-// src/app/product/[id]/page.tsx
 import { Suspense } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -8,30 +6,28 @@ import { ProductDetails } from '@/components/products/product-details'
 import RelatedProducts from '@/components/products/related-products'
 import { ProductSkeleton } from '@/components/products/product-skeleton'
 import { Breadcrumb } from '@/components/breadcrumb'
-// import { Product } from '@prisma/client'
 import { 
   Metadata, 
   // ResolvingMetadata 
 } from 'next'
 import { notFound } from 'next/navigation'
+import ImageWithFallback from '@/components/image'
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export async function generateMetadata(
-  { params }: Props,
-  // parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   // Fetch product data
   const product = await getProduct(params.id)
-  
+
   if (!product) {
     return {
       title: 'Product Not Found',
     }
   }
-  
+
   return {
     title: `${product.name} | E-Commerce Store`,
     description: product.description,
@@ -40,16 +36,22 @@ export async function generateMetadata(
 
 async function getProduct(id: string) {
   const product = await prisma.product.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      category: true, // Essential to get category name
+      reviews: {      // Needed ONLY if you calculate review count here
+         select: { id: true } // Select only 'id' for counting to be efficient
+      },
+    }
   })
   
   return product
 }
 
-async function getRelatedProducts(category: string, id: string) {
+async function getRelatedProducts(category: number, id: string) {
   const relatedProducts = await prisma.product.findMany({
     where: {
-      category: category,
+      categoryId: category,
       id: { not: id }
     },
     take: 4
@@ -62,28 +64,28 @@ export async function generateStaticParams() {
   const products = await prisma.product.findMany({
     select: { id: true }
   })
-  
   return products.map((product) => ({
     id: product.id,
   }))
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+export default async function ProductDetailPage(props: Props) {
+  const params = await props.params;
   const product = await getProduct(params.id)
-  
+
   if (!product) {
     notFound()
   }
-  
-  const relatedProducts = await getRelatedProducts(product.category, product.id)
-  
+
+  const relatedProducts = await getRelatedProducts(product.categoryId, product.id)
+
   // Create breadcrumb items
   const breadcrumbItems = [
     { label: 'Products', href: '/products' },
-    { label: product.category, href: `/products/category/${product.category.toLowerCase()}` },
+    { label: product.category.name, href: `/products/category/${product.category.name.toLowerCase()}` },
     { label: product.name }
   ]
-  
+
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Breadcrumb */}
@@ -98,10 +100,9 @@ export default async function ProductDetailPage({ params }: Props) {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         {/* Product Image */}
-        <div className="bg-white rounded-lg overflow-hidden shadow-md">
-          <Image 
-            width={400} 
-            height={400} 
+        <div className="bg-white relative rounded-lg overflow-hidden shadow-md">
+          <ImageWithFallback 
+            fill
             src={product.image} 
             alt={product.name} 
             className="w-full h-[400px] object-contain"

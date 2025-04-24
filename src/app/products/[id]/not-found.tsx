@@ -1,4 +1,4 @@
-// src/app/product/[id]/not-found.tsx
+// src/app/products/[id]/not-found.tsx
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 

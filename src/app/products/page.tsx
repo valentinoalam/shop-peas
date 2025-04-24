@@ -15,38 +15,44 @@ export const revalidate = 3600
 
 
 const getProducts = cache(async () => {
-  const products = await prisma.product.findMany()
+  const products = await prisma.product.findMany({
+    include: {
+      category: true, // Essential to get category name
+      reviews: {      // Needed ONLY if you calculate review count here
+         select: { id: true } // Select only 'id' for counting to be efficient
+      },
+      // 'ratings' might not be needed if 'rating' field is reliably updated average
+    }
+  })
   return JSON.parse(JSON.stringify(products))
 })
 
 const getCategories = cache(async () => {
-  const categories = await prisma.product.findMany({
-    select: { category: true },
-    distinct: ['category']
-  })
-  return categories.map(c => c.category)
+  const categories = await prisma.category.findMany()
+  return categories.map(c => c.name)
 })
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
+export default async function ProductsPage(
+  props: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  }
+) {
+  const searchParams = await props.searchParams;
   const productsPromise = getProducts()
   const categoriesPromise = getCategories()
-  
+
   const [products, categories] = await Promise.all([
     productsPromise,
     categoriesPromise
   ])
-  
+
   const categoryFilter = searchParams.category?.toString() || ''
   const sortParam = searchParams?.sort || 'price-asc'
   const sortBy = typeof sortParam === 'string' ? sortParam : sortParam[0] || 'price-asc'
-  
+
   const minPriceParam = searchParams?.minPrice || '0'
   const minPrice = Number(typeof minPriceParam === 'string' ? minPriceParam : minPriceParam[0] || '0')
-  
+
   const maxPriceParam = searchParams?.maxPrice || '600'
   const maxPrice = Number(typeof maxPriceParam === 'string' ? maxPriceParam : maxPriceParam[0] || '600')
 

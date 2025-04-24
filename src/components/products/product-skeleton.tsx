@@ -1,4 +1,4 @@
-// src/app/product/[id]/components/product-skeleton.tsx
+// src/app/products/[id]/components/product-skeleton.tsx
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function ProductSkeleton() {

@@ -5,6 +5,7 @@ import { ShoppingCart, Search, Menu } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/cart-context";
+import { ModeToggle } from "../mode-toggle";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,6 +38,10 @@ const Navbar = () => {
             <Link href="/products" className="text-gray-700 hover:text-shop-primary font-medium">
               Products
             </Link>
+            <Link href="/blog" className="text-gray-700 hover:text-shop-primary font-medium">
+              Blog
+            </Link>
+            <ModeToggle />
             <Link href="/cart" className="relative">
               <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-shop-primary" />
               {itemCount > 0 && (

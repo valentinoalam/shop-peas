@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Copy, Store } from "lucide-react"
 import Link from "next/link"
 
@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 
 export default function PaymentInstructionsPage() {
-  const router = useRouter()
+  // const router = useRouter()
   const searchParams = useSearchParams()
   const storeType = searchParams.get("store") || "alfamart"
   const paymentCode = searchParams.get("code") || "1234567890"
@@ -77,7 +77,7 @@ export default function PaymentInstructionsPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <Button asChild className="w-full">
-            <Link href="/checkout/success">I've Completed Payment</Link>
+            <Link href="/checkout/success">I&apos;ve Completed Payment</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/checkout">Return to Checkout</Link>

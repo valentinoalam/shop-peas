@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { products } from './data/products.js'
+import { categories, products } from './data/products.js'
 import { shippingMethods } from './data/shipping.js'
 import { paymentMethods } from './data/payment.js'
 
@@ -13,19 +13,31 @@ async function main() {
   await prisma.shippingMethod.deleteMany({})
   await prisma.paymentMethod.deleteMany({})
   
+// Seed categories
+for (const category of categories) {
+  await prisma.category.create({
+    data: {
+      name: category.name,
+      slug: slugify(category.name),
+      description:category.description
+    }
+  })
+}
+
   // Seed products
   for (const product of products) {
     await prisma.product.create({
       data: {
-        id: product.id,
         name: product.name,
+        slug: slugify(product.name),
         description: product.description,
+        weight: product.weight,
         price: product.price,
         image: product.image,
-        category: product.category,
+        categoryId: product.category,
         stock: product.stock,
         rating: product.rating,
-        reviews: product.reviews,
+        // reviews: product.reviews,
         featured: product.featured
       }
     })
@@ -65,3 +77,16 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
+
+
+
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+}

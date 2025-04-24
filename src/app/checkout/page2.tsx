@@ -17,6 +17,28 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { PaymentSummary } from "@/components/payment-summary"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { useToast } from "@/hooks/use-toast"
+
+// Define the form schema
+// const shippingFormSchema = z.object({
+//   firstName: z.string().min(2, "First name must be at least 2 characters"),
+//   lastName: z.string().min(2, "Last name must be at least 2 characters"),
+//   email: z.string().email("Please enter a valid email address"),
+//   phone: z.string().min(10, "Please enter a valid phone number"),
+//   address: z.string().min(5, "Please enter your street address"),
+//   city: z.string().min(2, "Please enter your city"),
+//   state: z.string().min(2, "Please enter your state/province"),
+//   zip: z.string().min(5, "Please enter a valid postal/zip code"),
+//   country: z.string().min(2, "Please select your country"),
+// });
+
+// Credit card form schema
+// const creditCardSchema = z.object({
+//   cardName: z.string().min(2, "Please enter the name on card"),
+//   cardNumber: z.string().min(13, "Please enter a valid card number"),
+//   expiryDate: z.string().regex(/^\d{2}\/\d{2}$/, "Please use MM/YY format"),
+//   cvv: z.string().min(3, "Please enter a valid CVV/CVC"),
+// });
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -27,8 +49,22 @@ const formSchema = z.object({
   bankCode: z.string().optional(),
 })
 
+// type ShippingFormValues = z.infer<typeof shippingFormSchema>;
+// type CreditCardFormValues = z.infer<typeof creditCardSchema>;
+
 export default function CheckoutPage() {
   const router = useRouter()
+  // const { toast } = useToast();
+  // const { 
+  //   items, 
+  //   subtotal, 
+  //   shippingMethod,
+  //   shippingCost,
+  //   paymentMethod,
+  //   setPaymentMethod,
+  //   clearCart
+  // } = useCart();
+  //   const [step, setStep] = useState<"shipping" | "payment" | "review">("shipping");
   const [isProcessing, setIsProcessing] = useState(false)
   const [showBankSelect, setShowBankSelect] = useState(false)
 

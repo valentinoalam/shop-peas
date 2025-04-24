@@ -1,7 +1,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
-import { OrderItem } from '@/generated/prisma'
+import { OrderItem } from '@prisma/client'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -11,6 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         subtotal,
         shippingCost,
         total,
+        shippingAddressId,
+        billingAddressId,
         shippingMethodId,
         paymentMethodId,
         email,
@@ -39,9 +41,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           city,
           state,
           zipCode,
-          status: 'confirmed',
-          shippingMethodId,
-          paymentMethodId,
+          status: 'PROCESSING',
+          shippingAddress: {
+            connect: { id: shippingAddressId }
+          },
+          billingAddress: {
+            connect: { id: billingAddressId }
+          },
+          shippingMethod: {
+            connect: { id: shippingMethodId }
+          },
+          paymentMethod: {
+            connect: { id: paymentMethodId }
+          },
           items: {
             create: items.map((item: OrderItem) => ({
               quantity: item.quantity,
