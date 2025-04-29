@@ -13,7 +13,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const { quantity } = await request.json()
-    const cartItemId = params.id
+    const cartItemId = await params.id
 
     // Find cart item
     const cartItem = await prisma.cartItem.findUnique({
@@ -60,7 +60,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const cartItemId = params.id
+    const cartItemId = await params.id
 
     // Find cart item
     const cartItem = await prisma.cartItem.findUnique({
