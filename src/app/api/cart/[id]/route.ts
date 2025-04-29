@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 
 // Update cart item
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -13,11 +13,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const { quantity } = await request.json()
-    const cartItemId = await params.id
+    const {id} = await params
 
     // Find cart item
     const cartItem = await prisma.cartItem.findUnique({
-      where: { id: cartItemId },
+      where: { id },
       include: {
         cart: true,
         product: true,
@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     // Update cart item
     await prisma.cartItem.update({
-      where: { id: cartItemId },
+      where: { id },
       data: { quantity },
     })
 
@@ -60,11 +60,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const cartItemId = await params.id
+    const {id} = await params
 
     // Find cart item
     const cartItem = await prisma.cartItem.findUnique({
-      where: { id: cartItemId },
+      where: { id },
       include: {
         cart: true,
       },
@@ -81,7 +81,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     // Delete cart item
     await prisma.cartItem.delete({
-      where: { id: cartItemId },
+      where: { id },
     })
 
     return NextResponse.json({ message: "Item removed from cart" })
