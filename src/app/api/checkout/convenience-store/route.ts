@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+// import Xendit from 'xendit-node'
+// import midtransClient from 'midtrans-client'
 
 // These would be your payment gateway API keys in a real implementation
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY
@@ -20,8 +22,9 @@ export async function POST(request: Request) {
 
     if (useXendit) {
       // Xendit implementation
-      /*
+
       // In a real implementation, you would use the Xendit Node.js library
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Xendit = require('xendit-node')
       const x = new Xendit({
         secretKey: XENDIT_API_KEY,
@@ -33,7 +36,7 @@ export async function POST(request: Request) {
       
       const retailOutletType = storeType === 'alfamart' ? 'ALFAMART' : 'INDOMARET'
       
-      const resp = await retailOutlet.createFixedPaymentCode({
+      const mockXenditResponse = await retailOutlet.createFixedPaymentCode({
         externalID: orderId,
         retailOutletName: retailOutletType,
         name: `${customerDetails.firstName} ${customerDetails.lastName}`,
@@ -41,19 +44,18 @@ export async function POST(request: Request) {
         paymentCode: generatePaymentCode(storeType),
         expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       })
-      */
 
       // Mock Xendit response
-      const mockXenditResponse = {
-        id: `ro-${Date.now()}`,
-        external_id: orderId,
-        retail_outlet_name: storeType === "alfamart" ? "ALFAMART" : "INDOMARET",
-        payment_code: generatePaymentCode(storeType),
-        expected_amount: amount,
-        is_single_use: true,
-        expiration_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        status: "ACTIVE",
-      }
+      // const mockXenditResponse = {
+      //   id: `ro-${Date.now()}`,
+      //   external_id: orderId,
+      //   retail_outlet_name: storeType === "alfamart" ? "ALFAMART" : "INDOMARET",
+      //   payment_code: generatePaymentCode(storeType),
+      //   expected_amount: amount,
+      //   is_single_use: true,
+      //   expiration_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      //   status: "ACTIVE",
+      // }
 
       return NextResponse.json({
         success: true,
@@ -64,12 +66,13 @@ export async function POST(request: Request) {
       })
     } else {
       // Midtrans implementation
-      /*
+      
       // In a real implementation, you would use the Midtrans Node.js library
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const midtransClient = require('midtrans-client')
       
       // Create Core API instance
-      let core = new midtransClient.CoreApi({
+      const core = new midtransClient.CoreApi({
         isProduction: false,
         serverKey: MIDTRANS_SERVER_KEY,
         clientKey: process.env.MIDTRANS_CLIENT_KEY
@@ -93,24 +96,24 @@ export async function POST(request: Request) {
         }
       }
       
-      const response = await core.charge(parameter)
-      */
+      const mockMidtransResponse = await core.charge(parameter)
+
 
       // Mock Midtrans response
-      const mockMidtransResponse = {
-        status_code: "201",
-        status_message: "Success, cstore transaction is created",
-        transaction_id: `${storeType}-${Date.now()}`,
-        order_id: orderId,
-        gross_amount: amount.toString(),
-        payment_type: "cstore",
-        transaction_time: new Date().toISOString(),
-        transaction_status: "pending",
-        payment_code: generatePaymentCode(storeType),
-        store: storeType,
-        fraud_status: "accept",
-        expiry_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      }
+      // const mockMidtransResponse = {
+      //   status_code: "201",
+      //   status_message: "Success, cstore transaction is created",
+      //   transaction_id: `${storeType}-${Date.now()}`,
+      //   order_id: orderId,
+      //   gross_amount: amount.toString(),
+      //   payment_type: "cstore",
+      //   transaction_time: new Date().toISOString(),
+      //   transaction_status: "pending",
+      //   payment_code: generatePaymentCode(storeType),
+      //   store: storeType,
+      //   fraud_status: "accept",
+      //   expiry_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      // }
 
       return NextResponse.json({
         success: true,

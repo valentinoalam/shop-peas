@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     // or make a direct API call to Midtrans to create a transaction
 
     // Example of what the API call might look like:
-    /*
+    
     const response = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
       method: 'POST',
       headers: {
@@ -36,14 +36,14 @@ export async function POST(request: Request) {
       })
     })
 
-    const data = await response.json()
-    */
+    const mockResponse = await response.json()
+    
 
     // For this example, we'll simulate a successful response
-    const mockResponse = {
-      token: "mock-midtrans-token-" + Date.now(),
-      redirect_url: "/checkout/processing?gateway=midtrans",
-    }
+    // const mockResponse = {
+    //   token: "mock-midtrans-token-" + Date.now(),
+    //   redirect_url: "/checkout/processing?gateway=midtrans",
+    // }
 
     return NextResponse.json(mockResponse)
   } catch (error) {

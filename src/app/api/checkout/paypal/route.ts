@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     // or make direct API calls to PayPal to create an order
 
     // Example of what the API call might look like:
-    /*
+    
     // First get an access token
     const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
       method: 'POST',
@@ -49,21 +49,20 @@ export async function POST(request: Request) {
       })
     })
     
-    const data = await orderResponse.json()
-    */
+    const mockResponse = await orderResponse.json()
 
     // For this example, we'll simulate a successful response
-    const mockResponse = {
-      id: "mock-paypal-order-" + Date.now(),
-      status: "CREATED",
-      links: [
-        {
-          href: "/checkout/processing?gateway=paypal",
-          rel: "approve",
-          method: "GET",
-        },
-      ],
-    }
+    // const mockResponse = {
+    //   id: "mock-paypal-order-" + Date.now(),
+    //   status: "CREATED",
+    //   links: [
+    //     {
+    //       href: "/checkout/processing?gateway=paypal",
+    //       rel: "approve",
+    //       method: "GET",
+    //     },
+    //   ],
+    // }
 
     return NextResponse.json(mockResponse)
   } catch (error) {

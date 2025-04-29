@@ -21,8 +21,8 @@ export async function POST(request: Request) {
 
     if (useXendit) {
       // Xendit implementation
-      /*
       // In a real implementation, you would use the Xendit Node.js library
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Xendit = require('xendit-node')
       const x = new Xendit({
         secretKey: XENDIT_API_KEY,
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       const vaSpecificOptions = {}
       const va = new VirtualAcc(vaSpecificOptions)
       
-      const resp = await va.create({
+      const mockXenditResponse = await va.create({
         externalID: orderId,
         bankCode: bankCode.toUpperCase(),
         name: `${customerDetails.firstName} ${customerDetails.lastName}`,
@@ -41,23 +41,22 @@ export async function POST(request: Request) {
         isClosed: true,
         expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       })
-      */
 
       // Mock Xendit response
-      const mockXenditResponse = {
-        id: `va-${Date.now()}`,
-        external_id: orderId,
-        owner_id: "xendit_owner_id",
-        bank_code: bankCode.toUpperCase(),
-        account_number: generateVirtualAccountNumber(bankCode),
-        merchant_code: "12345",
-        name: `${customerDetails.firstName} ${customerDetails.lastName}`,
-        is_closed: true,
-        expected_amount: amount,
-        expiration_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        is_single_use: true,
-        status: "PENDING",
-      }
+      // const mockXenditResponse = {
+      //   id: `va-${Date.now()}`,
+      //   external_id: orderId,
+      //   owner_id: "xendit_owner_id",
+      //   bank_code: bankCode.toUpperCase(),
+      //   account_number: generateVirtualAccountNumber(bankCode),
+      //   merchant_code: "12345",
+      //   name: `${customerDetails.firstName} ${customerDetails.lastName}`,
+      //   is_closed: true,
+      //   expected_amount: amount,
+      //   expiration_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      //   is_single_use: true,
+      //   status: "PENDING",
+      // }
 
       return NextResponse.json({
         success: true,
@@ -68,12 +67,13 @@ export async function POST(request: Request) {
       })
     } else {
       // Midtrans implementation
-      /*
+      
       // In a real implementation, you would use the Midtrans Node.js library
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const midtransClient = require('midtrans-client')
       
       // Create Core API instance
-      let core = new midtransClient.CoreApi({
+      const core = new midtransClient.CoreApi({
         isProduction: false,
         serverKey: MIDTRANS_SERVER_KEY,
         clientKey: process.env.MIDTRANS_CLIENT_KEY
@@ -96,28 +96,28 @@ export async function POST(request: Request) {
         }
       }
       
-      const response = await core.charge(parameter)
-      */
+      const mockMidtransResponse = await core.charge(parameter)
+
 
       // Mock Midtrans response
-      const mockMidtransResponse = {
-        status_code: "201",
-        status_message: "Success, Bank Transfer transaction is created",
-        transaction_id: `${bankCode}-${Date.now()}`,
-        order_id: orderId,
-        gross_amount: amount.toString(),
-        payment_type: "bank_transfer",
-        transaction_time: new Date().toISOString(),
-        transaction_status: "pending",
-        va_numbers: [
-          {
-            bank: bankCode,
-            va_number: generateVirtualAccountNumber(bankCode),
-          },
-        ],
-        fraud_status: "accept",
-        expiry_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      }
+      // const mockMidtransResponse = {
+      //   status_code: "201",
+      //   status_message: "Success, Bank Transfer transaction is created",
+      //   transaction_id: `${bankCode}-${Date.now()}`,
+      //   order_id: orderId,
+      //   gross_amount: amount.toString(),
+      //   payment_type: "bank_transfer",
+      //   transaction_time: new Date().toISOString(),
+      //   transaction_status: "pending",
+      //   va_numbers: [
+      //     {
+      //       bank: bankCode,
+      //       va_number: generateVirtualAccountNumber(bankCode),
+      //     },
+      //   ],
+      //   fraud_status: "accept",
+      //   expiry_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      // }
 
       return NextResponse.json({
         success: true,
@@ -134,17 +134,17 @@ export async function POST(request: Request) {
 }
 
 // Helper function to generate a random virtual account number based on bank
-function generateVirtualAccountNumber(bankCode: string): string {
-  const prefix: { [key: string]: string } = {
-    bca: "39",
-    bni: "88",
-    bri: "12",
-    mandiri: "89",
-    permata: "42",
-  }
+// function generateVirtualAccountNumber(bankCode: string): string {
+//   const prefix: { [key: string]: string } = {
+//     bca: "39",
+//     bni: "88",
+//     bri: "12",
+//     mandiri: "89",
+//     permata: "42",
+//   }
 
-  const randomDigits = Math.floor(Math.random() * 10000000000)
-    .toString()
-    .padStart(10, "0")
-  return `${prefix[bankCode] || ""}${randomDigits}`.slice(0, 16)
-}
+//   const randomDigits = Math.floor(Math.random() * 10000000000)
+//     .toString()
+//     .padStart(10, "0")
+//   return `${prefix[bankCode] || ""}${randomDigits}`.slice(0, 16)
+// }
