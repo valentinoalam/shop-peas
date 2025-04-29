@@ -1,10 +1,10 @@
 // import Link from 'next/link'
 // import Image from 'next/image'
-import { Product } from '@prisma/client'
 import ProductCard from './product-card'
+import { ProductWithDetails } from './product-details'
 
 interface RelatedProductsProps {
-  products: Product[]
+  products: ProductWithDetails[]
 }
 
 export default function RelatedProducts({ products }: RelatedProductsProps) {
