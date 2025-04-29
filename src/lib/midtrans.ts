@@ -1,6 +1,20 @@
 // This is a simplified version of the Midtrans client
 // In a real application, you would use the midtrans-client package
-
+interface TrxParams{
+  transaction_details: {
+      order_id: string
+      gross_amount: number
+  }
+  credit_card:{
+      secure : boolean
+  }
+  customer_details: {
+      first_name: string
+      last_name: string
+      email: string
+      phone: string
+  }
+}
 export class Midtrans {
   private serverKey: string
   private isProduction: boolean
@@ -14,7 +28,7 @@ export class Midtrans {
       : "https://app.sandbox.midtrans.com/snap/v1/transactions"
   }
 
-  async createTransaction(params: any) {
+  async createTransaction(params: TrxParams) {
     const response = await fetch(this.apiUrl, {
       method: "POST",
       headers: {

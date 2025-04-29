@@ -5,9 +5,10 @@ import { useState } from "react"
 import { Trash2, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
+import { CartItemWithPrice } from "@/app/api/checkout/route"
 
 type CartItemProps = {
-  items: any[]
+  items: CartItemWithPrice[]
 }
 
 export default function CartItems({ items }: CartItemProps) {

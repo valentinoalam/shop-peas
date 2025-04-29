@@ -170,7 +170,9 @@ export type CartItemWithPrice = Prisma.CartItemGetPayload<{
     product: { 
       select: { 
         name: true;
-        price: true 
+        price: true;
+        image: true; 
+        stock: true;
       } 
     };
   }
