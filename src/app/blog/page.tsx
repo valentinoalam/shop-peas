@@ -10,7 +10,7 @@ export default function Home() {
 
   // Extract unique categories
   const categories = Array.from(
-    new Set(allPosts.flatMap((post) => post.category || []))
+    new Set(allPosts.flatMap((post) => post.categories || []))
   );
 
   return (
