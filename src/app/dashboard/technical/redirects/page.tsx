@@ -10,16 +10,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Plus, Trash2, Info } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Redirect } from "@prisma/client"
 
 export default function RedirectManager() {
-  const [redirects, setRedirects] = useState([])
+  const [redirects, setRedirects] = useState<Redirect[]>([])
   const [newSource, setNewSource] = useState("")
   const [newDestination, setNewDestination] = useState("")
   const [newPermanent, setNewPermanent] = useState("true")
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [addingRedirect, setAddingRedirect] = useState(false)
-  const [deleteLoading, setDeleteLoading] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
 
   // Fetch redirects on component mount
   useEffect(() => {
@@ -39,7 +40,11 @@ export default function RedirectManager() {
       setLoading(false)
     } catch (err) {
       console.error("Error fetching redirects:", err)
-      setError(err.message)
+              if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       setLoading(false)
     }
   }
@@ -80,13 +85,17 @@ export default function RedirectManager() {
       setAddingRedirect(false)
     } catch (err) {
       console.error("Error adding redirect:", err)
-      setError(err.message)
+      if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       setAddingRedirect(false)
     }
   }
 
   // Remove redirect
-  const removeRedirect = async (id) => {
+  const removeRedirect = async (id: string) => {
     try {
       setDeleteLoading(id)
 
@@ -103,7 +112,11 @@ export default function RedirectManager() {
       setDeleteLoading(null)
     } catch (err) {
       console.error("Error deleting redirect:", err)
-      setError(err.message)
+              if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       setDeleteLoading(null)
     }
   }
