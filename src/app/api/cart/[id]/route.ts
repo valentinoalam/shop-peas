@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // Remove cart item
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
