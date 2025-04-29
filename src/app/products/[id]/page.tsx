@@ -54,6 +54,12 @@ async function getRelatedProducts(category: number, id: string) {
       categoryId: category,
       id: { not: id }
     },
+    include: {
+      category: true, // Essential to get category name
+      reviews: {      // Needed ONLY if you calculate review count here
+         select: { id: true } // Select only 'id' for counting to be efficient
+      },
+    },
     take: 4
   })
   
