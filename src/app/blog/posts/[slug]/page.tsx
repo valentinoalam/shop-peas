@@ -6,20 +6,15 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from 'lucide-react';
 
-interface PostPageProps {
-  params: {
-    slug: string;
-  };
-}
-
 export function generateStaticParams() {
   return allPosts.map((post) => ({
     slug: post.slug,
   }));
 }
 
-export function generateMetadata({ params }: PostPageProps) {
-  const post = allPosts.find((post) => post.slug === params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const {slug} = await params;
+  const post = allPosts.find((post) => post.slug === slug);
 
   if (!post) {
     return {};
@@ -31,8 +26,9 @@ export function generateMetadata({ params }: PostPageProps) {
   };
 }
 
-export default function PostPage({ params }: PostPageProps) {
-  const post = allPosts.find((post) => post.slug === params.slug);
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const {slug} = await params;
+  const post = allPosts.find((post) => post.slug === slug);
 
   if (!post) {
     notFound();
