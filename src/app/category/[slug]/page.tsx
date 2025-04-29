@@ -4,12 +4,6 @@ import prisma from '@/lib/prisma';
 import ProductCard from '@/components/products/product-card';
 import { unstable_cache } from 'next/cache';
 
-interface CategoryPageProps {
-  params: {
-    slug: string;
-  };
-}
-
 const getCategoryWithProducts = unstable_cache(
   async (categorySlug: string) => {
     console.log(categorySlug)
@@ -30,7 +24,7 @@ const getCategoryWithProducts = unstable_cache(
   });     
 })
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (!slug || typeof slug !== 'string') {
     notFound()
