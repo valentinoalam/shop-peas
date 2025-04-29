@@ -367,8 +367,6 @@ model CartItem {
   // @@unique([cartId, productId])
 }
 
-
-
 model Page {
   id          String   @id @default(cuid())
   path        String   @unique

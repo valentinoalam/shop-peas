@@ -11,17 +11,18 @@ import { ArrowLeft, Plus, Trash2, Info, Check, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Page } from "@prisma/client"
 
 export default function MetaTagManagerClient() {
-  const [pages, setPages] = useState([])
+  const [pages, setPages] = useState<Page[]>([])
   const [newPath, setNewPath] = useState("")
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
   const [newKeywords, setNewKeywords] = useState("")
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [addingPage, setAddingPage] = useState(false)
-  const [deleteLoading, setDeleteLoading] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
 
   // Fetch pages on component mount
   useEffect(() => {
@@ -41,7 +42,12 @@ export default function MetaTagManagerClient() {
       setLoading(false)
     } catch (err) {
       console.error('Error fetching pages:', err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+      
       setLoading(false)
     }
   }
@@ -84,13 +90,17 @@ export default function MetaTagManagerClient() {
       setAddingPage(false)
     } catch (err) {
       console.error('Error adding page:', err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
       setAddingPage(false)
     }
   }
 
   // Remove page
-  const removePage = async (id) => {
+  const removePage = async (id: string) => {
     try {
       setDeleteLoading(id)
       
@@ -107,7 +117,11 @@ export default function MetaTagManagerClient() {
       setDeleteLoading(null)
     } catch (err) {
       console.error('Error deleting page:', err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
       setDeleteLoading(null)
     }
   }
@@ -278,7 +292,7 @@ export default function MetaTagManagerClient() {
                 </TabsList>
 
                 <TabsContent value="static" className="mt-4">
-                  <div className="space-y-4">
+                  <div className="space-y-4"></div>
                   <div className="space-y-4">
                     <Alert>
                       <Info className="h-4 w-4" />
@@ -288,14 +302,14 @@ export default function MetaTagManagerClient() {
 
                     <pre className="bg-muted p-4 rounded-md text-xs overflow-auto">
                       {`// app/about/page.js
-export default function AboutPage() {
-  return (
-    <div>
-      <h1>About Us</h1>
-      {/* Konten halaman */}
-    </div>
-  )
-}`}
+                        export default function AboutPage() {
+                          return (
+                            <div>
+                              <h1>About Us</h1>
+                              {/* Konten halaman */}
+                            </div>
+                          )
+                        }`}
                     </pre>
                   </div>
                 </TabsContent>
@@ -310,16 +324,16 @@ export default function AboutPage() {
 
                     <pre className="bg-muted p-4 rounded-md text-xs overflow-auto">
                       {`// app/blog/[slug]/page.js
-export default async function BlogPost({ 
-  params 
-}) {
-  return (
-    <div>
-      <h1>Blog Post</h1>
-      {/* Konten blog */}
-    </div>
-  )
-}`}
+                        export default async function BlogPost({ 
+                          params 
+                        }) {
+                          return (
+                            <div>
+                              <h1>Blog Post</h1>
+                              {/* Konten blog */}
+                            </div>
+                          )
+                        }`}
                     </pre>
                   </div>
                 </TabsContent>

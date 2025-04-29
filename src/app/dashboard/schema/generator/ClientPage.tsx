@@ -11,9 +11,10 @@ import { ArrowLeft, Copy, Check, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Page } from "@prisma/client"
 
 export default function SchemaGenerator() {
-  const [pages, setPages] = useState([])
+  const [pages, setPages] = useState<Page[]>([])
   const [selectedPageId, setSelectedPageId] = useState("")
   const [schemaType, setSchemaType] = useState("article")
   const [title, setTitle] = useState("")
@@ -25,9 +26,9 @@ export default function SchemaGenerator() {
   const [generated, setGenerated] = useState(false)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [generatingSchema, setGeneratingSchema] = useState(false)
-
+  const [savedSchema, setSavedSchema] = useState(null)
   // Fetch pages on component mount
   useEffect(() => {
     async function fetchPages() {
@@ -42,7 +43,11 @@ export default function SchemaGenerator() {
         setLoading(false)
       } catch (err) {
         console.error("Error fetching pages:", err)
-        setError(err.message)
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
         setLoading(false)
       }
     }
@@ -51,7 +56,7 @@ export default function SchemaGenerator() {
   }, [])
 
   // Handle page selection
-  const handlePageChange = async (pageId) => {
+  const handlePageChange = async (pageId: string) => {
     setSelectedPageId(pageId)
 
     if (!pageId) {
@@ -73,7 +78,11 @@ export default function SchemaGenerator() {
       setUrl(`https://yourdomain.com${page.path}`)
     } catch (err) {
       console.error("Error fetching page details:", err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
     }
   }
 
@@ -108,14 +117,35 @@ export default function SchemaGenerator() {
         },
       }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      // Save schema to database
+      const response = await fetch("/api/schema", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pageId: selectedPageId === "none" ? null : selectedPageId,
+          type: schemaType,
+          data: schemaData,
+        }),
+      })
 
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to save schema")
+      }
+
+      const savedData = await response.json()
+      setSavedSchema(savedData)
       setGenerated(true)
       setGeneratingSchema(false)
     } catch (err) {
       console.error("Error generating schema:", err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
       setGeneratingSchema(false)
     }
   }
@@ -128,20 +158,20 @@ export default function SchemaGenerator() {
 
   // Generate schema markup
   const generatedSchema = `<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "${schemaType.charAt(0).toUpperCase() + schemaType.slice(1)}",
-  "headline": "${title}",
-  "description": "${description}",
-  "author": {
-    "@type": "Person",
-    "name": "${author}"
-  },
-  "datePublished": "${datePublished}",
-  "image": "${imageUrl}",
-  "url": "${url}"
-}
-</script>`
+  {
+    "@context": "https://schema.org",
+    "@type": "${schemaType.charAt(0).toUpperCase() + schemaType.slice(1)}",
+    "headline": "${title}",
+    "description": "${description}",
+    "author": {
+      "@type": "Person",
+      "name": "${author}"
+    },
+    "datePublished": "${datePublished}",
+    "image": "${imageUrl}",
+    "url": "${url}"
+  }
+  </script>`
 
   if (loading && pages.length === 0) {
     return (
@@ -185,6 +215,14 @@ export default function SchemaGenerator() {
         </Alert>
       )}
 
+      {savedSchema && (
+        <Alert variant="default" className="mb-6 border-green-500 bg-green-50 text-green-800">
+          <Check className="h-4 w-4 text-green-500" />
+          <AlertTitle>Schema Berhasil Disimpan</AlertTitle>
+          <AlertDescription>Schema markup berhasil disimpan ke database</AlertDescription>
+        </Alert>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card>
@@ -292,10 +330,10 @@ export default function SchemaGenerator() {
                 {generatingSchema ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Generating...
+                    Menyimpan...
                   </>
                 ) : (
-                  "Generate Schema"
+                  "Generate & Simpan Schema"
                 )}
               </Button>
             </CardFooter>
@@ -330,7 +368,7 @@ export default function SchemaGenerator() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  Isi formulir dan klik "Generate Schema" untuk melihat hasilnya
+                  Isi formulir dan klik &quot;Generate Schema&quot; untuk melihat hasilnya
                 </div>
               )}
             </CardContent>
@@ -352,16 +390,16 @@ export default function SchemaGenerator() {
                     <p className="text-sm">Gunakan Metadata API Next.js untuk menambahkan schema:</p>
                     <pre className="bg-muted p-4 rounded-md text-xs overflow-auto">
                       {`// app/page.js atau layout.js
-export const metadata = {
-  other: {
-    'application/ld+json': JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      'headline': 'Judul Artikel',
-      // ...properti lainnya
-    }),
-  },
-}`}
+                        export const metadata = {
+                          other: {
+                            'application/ld+json': JSON.stringify({
+                              '@context': 'https://schema.org',
+                              '@type': 'Article',
+                              'headline': 'Judul Artikel',
+                              // ...properti lainnya
+                            }),
+                          },
+                        }`}
                     </pre>
                   </div>
                 </TabsContent>
@@ -371,29 +409,29 @@ export const metadata = {
                     <p className="text-sm">Atau gunakan komponen Script:</p>
                     <pre className="bg-muted p-4 rounded-md text-xs overflow-auto">
                       {`// app/layout.js
-import Script from 'next/script'
+                        import Script from 'next/script'
 
-export default function Layout({ children }) {
-  return (
-    <html>
-      <head>
-        <Script
-          id="schema-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: \`{
-              "@context": "https://schema.org",
-              "@type": "Article",
-              "headline": "Judul Artikel",
-              // ...properti lainnya
-            }\`
-          }}
-        />
-      </head>
-      <body>{children}</body>
-    </html>
-  )
-}`}
+                        export default function Layout({ children }) {
+                          return (
+                            <html>
+                              <head>
+                                <Script
+                                  id="schema-data"
+                                  type="application/ld+json"
+                                  dangerouslySetInnerHTML={{
+                                    __html: \`{
+                                      "@context": "https://schema.org",
+                                      "@type": "Article",
+                                      "headline": "Judul Artikel",
+                                      // ...properti lainnya
+                                    }\`
+                                  }}
+                                />
+                              </head>
+                              <body>{children}</body>
+                            </html>
+                          )
+                        }`}
                     </pre>
                   </div>
                 </TabsContent>
