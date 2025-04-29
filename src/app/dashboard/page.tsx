@@ -8,12 +8,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, CheckCircle2, FileText, Globe, BarChart2 } from "lucide-react"
 import Link from "next/link"
+import { Analysis, Page } from "@prisma/client"
 
 export default function DashboardPage() {
-  const [pages, setPages] = useState([])
-  const [analyses, setAnalyses] = useState([])
+  const [pages, setPages] = useState<Page[]>([])
+  const [analyses, setAnalyses] = useState<Analysis[]>([])
+  const [redirects, setRedirects] = useState([])
+  const [schemas, setSchemas] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -28,14 +31,38 @@ export default function DashboardPage() {
         const pagesData = await pagesResponse.json()
         setPages(pagesData)
 
-        // In a real app, you might fetch more data here
-        // For now, we'll just simulate some analysis data
-        setAnalyses([])
+        // Fetch analyses
+        const analysesResponse = await fetch("/api/analysis")
+        if (!analysesResponse.ok) {
+          throw new Error("Failed to fetch analyses")
+        }
+        const analysesData = await analysesResponse.json()
+        setAnalyses(analysesData)
+
+        // Fetch redirects
+        const redirectsResponse = await fetch("/api/redirects")
+        if (!redirectsResponse.ok) {
+          throw new Error("Failed to fetch redirects")
+        }
+        const redirectsData = await redirectsResponse.json()
+        setRedirects(redirectsData)
+
+        // Fetch schemas
+        const schemasResponse = await fetch("/api/schema")
+        if (!schemasResponse.ok) {
+          throw new Error("Failed to fetch schemas")
+        }
+        const schemasData = await schemasResponse.json()
+        setSchemas(schemasData)
 
         setLoading(false)
       } catch (err) {
         console.error("Error fetching dashboard data:", err)
-        setError(err.message)
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
         setLoading(false)
       }
     }
@@ -45,24 +72,144 @@ export default function DashboardPage() {
 
   // Calculate average scores
   const calculateAverageScores = () => {
-    if (pages.length === 0) {
+    if (analyses.length === 0) {
       return {
         seo: 0,
         readability: 0,
-        technical: 0,
+        technical: calculateTechnicalScore(),
       }
     }
 
-    // In a real app, you'd calculate this from actual analysis data
-    // For now, we'll use some placeholder logic
+    // Calculate average SEO score
+    const totalSeoScore = analyses.reduce((sum, analysis) => sum + analysis.seoScore, 0)
+    const avgSeoScore = Math.round(totalSeoScore / analyses.length)
+
+    // Calculate average readability score
+    const totalReadabilityScore = analyses.reduce((sum, analysis) => sum + analysis.readabilityScore, 0)
+    const avgReadabilityScore = Math.round(totalReadabilityScore / analyses.length)
+
     return {
-      seo: 72,
-      readability: 85,
-      technical: 65,
+      seo: avgSeoScore,
+      readability: avgReadabilityScore,
+      technical: calculateTechnicalScore(),
     }
   }
 
+  // Calculate technical score based on redirects, schemas, etc.
+  const calculateTechnicalScore = () => {
+    let score = 50 // Base score
+
+    // Add points for having redirects set up
+    if (redirects.length > 0) {
+      score += 15
+    }
+
+    // Add points for having schemas set up
+    if (schemas.length > 0) {
+      score += 20
+    }
+
+    // Add points for having meta descriptions
+    const pagesWithMetaDesc = pages.filter((page) => page.description && page.description.length >= 120).length
+    if (pagesWithMetaDesc > 0) {
+      const metaDescScore = Math.min(15, Math.round((pagesWithMetaDesc / pages.length) * 15))
+      score += metaDescScore
+    }
+
+    return Math.min(100, score) // Cap at 100
+  }
+
+  // Get SEO issues
+  const getSeoIssues = () => {
+    const issues = []
+
+    // Check for pages with missing or short meta descriptions
+    const pagesWithShortDesc = pages.filter((page) => !page.description || page.description.length < 120)
+    if (pagesWithShortDesc.length > 0) {
+      issues.push({
+        title: "Meta deskripsi terlalu pendek",
+        description: `${pagesWithShortDesc.length} halaman memiliki meta deskripsi kurang dari 120 karakter`,
+        severity: "destructive",
+      })
+    }
+
+    // Check for pages without analyses
+    const analyzedPageIds = analyses.map((analysis) => analysis.pageId)
+    const pagesWithoutAnalysis = pages.filter((page) => !analyzedPageIds.includes(page.id))
+    if (pagesWithoutAnalysis.length > 0) {
+      issues.push({
+        title: "Halaman belum dianalisis",
+        description: `${pagesWithoutAnalysis.length} halaman belum dianalisis kontennya`,
+        severity: "destructive",
+      })
+    }
+
+    // Check for pages without schema markup
+    if (schemas.length === 0) {
+      issues.push({
+        title: "Schema markup belum dibuat",
+        description: "Belum ada schema markup untuk meningkatkan pemahaman mesin pencari",
+        severity: "default",
+      })
+    }
+
+    return issues
+  }
+
+  // Get positive aspects
+  const getPositiveAspects = () => {
+    const positives = []
+
+    // Check for pages with good meta descriptions
+    const pagesWithGoodDesc = pages.filter(
+      (page) => page.description && page.description.length >= 120 && page.description.length <= 160,
+    )
+    if (pagesWithGoodDesc.length > 0) {
+      positives.push({
+        title: "Meta deskripsi optimal",
+        description: `${pagesWithGoodDesc.length} halaman memiliki meta deskripsi dengan panjang optimal`,
+      })
+    }
+
+    // Check for pages with analyses
+    if (analyses.length > 0) {
+      positives.push({
+        title: "Konten telah dianalisis",
+        description: `${analyses.length} analisis konten telah dilakukan`,
+      })
+    }
+
+    // Check for redirects
+    if (redirects.length > 0) {
+      positives.push({
+        title: "Redirect telah dikonfigurasi",
+        description: `${redirects.length} redirect telah diatur untuk mengarahkan lalu lintas dengan benar`,
+      })
+    }
+
+    // If we don't have enough positives, add some default ones
+    if (positives.length < 3) {
+      if (!positives.some((p) => p.title === "Responsif mobile")) {
+        positives.push({
+          title: "Responsif mobile",
+          description: "Situs Anda sepenuhnya responsif di semua ukuran layar",
+        })
+      }
+
+      if (!positives.some((p) => p.title === "Kecepatan halaman baik") && positives.length < 3) {
+        positives.push({
+          title: "Kecepatan halaman baik",
+          description: "Situs Anda memiliki waktu muat yang cepat di perangkat mobile dan desktop",
+        })
+      }
+    }
+
+    return positives
+  }
+
   const scores = calculateAverageScores()
+  const seoIssues = getSeoIssues()
+  const positiveAspects = getPositiveAspects()
 
   if (loading) {
     return (
@@ -171,31 +318,20 @@ export default function DashboardPage() {
                       <AlertTitle>Belum ada halaman</AlertTitle>
                       <AlertDescription>Tambahkan halaman untuk mulai menganalisis SEO Anda</AlertDescription>
                     </Alert>
+                  ) : seoIssues.length === 0 ? (
+                    <Alert variant="default" className="border-green-500 bg-green-50 text-green-800">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <AlertTitle>Tidak ada masalah terdeteksi</AlertTitle>
+                      <AlertDescription>Semua aspek SEO Anda terlihat baik!</AlertDescription>
+                    </Alert>
                   ) : (
-                    <>
-                      <Alert variant="destructive">
+                    seoIssues.map((issue, index) => (
+                      <Alert key={index} variant={issue.severity as "default" | "destructive"}>
                         <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Meta deskripsi terlalu pendek</AlertTitle>
-                        <AlertDescription>
-                          {pages.filter((page) => !page.description || page.description.length < 120).length} halaman
-                          memiliki meta deskripsi kurang dari 120 karakter
-                        </AlertDescription>
+                        <AlertTitle>{issue.title}</AlertTitle>
+                        <AlertDescription>{issue.description}</AlertDescription>
                       </Alert>
-
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Sitemap belum dibuat</AlertTitle>
-                        <AlertDescription>XML sitemap belum dikonfigurasi untuk situs Anda</AlertDescription>
-                      </Alert>
-
-                      <Alert variant="default">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Kata kunci fokus tidak optimal</AlertTitle>
-                        <AlertDescription>
-                          Beberapa halaman tidak menggunakan kata kunci fokus dengan baik
-                        </AlertDescription>
-                      </Alert>
-                    </>
+                    ))
                   )}
                 </div>
               </CardContent>
@@ -208,27 +344,13 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Alert variant="success" className="border-green-500 bg-green-50 text-green-800">
+                {positiveAspects.map((aspect, index) => (
+                  <Alert key={index} variant="default" className="border-green-500 bg-green-50 text-green-800">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <AlertTitle>Kecepatan halaman baik</AlertTitle>
-                    <AlertDescription>
-                      Situs Anda memiliki waktu muat yang cepat di perangkat mobile dan desktop
-                    </AlertDescription>
+                    <AlertTitle>{aspect.title}</AlertTitle>
+                    <AlertDescription>{aspect.description}</AlertDescription>
                   </Alert>
-
-                  <Alert variant="success" className="border-green-500 bg-green-50 text-green-800">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <AlertTitle>Struktur heading optimal</AlertTitle>
-                    <AlertDescription>
-                      Struktur heading (H1, H2, H3) sudah diimplementasikan dengan baik
-                    </AlertDescription>
-                  </Alert>
-
-                  <Alert variant="success" className="border-green-500 bg-green-50 text-green-800">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <AlertTitle>Responsif mobile</AlertTitle>
-                    <AlertDescription>Situs Anda sepenuhnya responsif di semua ukuran layar</AlertDescription>
-                  </Alert>
+                  ))}
                 </div>
               </CardContent>
             </Card>

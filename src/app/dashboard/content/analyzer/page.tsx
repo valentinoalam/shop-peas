@@ -12,18 +12,38 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Analysis, Page } from "@prisma/client"
 
+interface AnalysisResults {
+  analysis: Analysis;
+  details: {
+    keyphrase: {
+      found: boolean;
+      count: number;
+      density: number;
+    };
+    readability: {
+      score: number;
+      wordCount: number;
+      sentenceCount: number;
+      avgWordsPerSentence: number;
+      longSentences: number;
+    };
+    seoScore: number;
+    readabilityScore: number;
+  }
+}
 export default function ContentAnalyzer() {
-  const [pages, setPages] = useState([])
+  const [pages, setPages] = useState<Page[]>([])
   const [selectedPageId, setSelectedPageId] = useState("")
   const [content, setContent] = useState("")
   const [title, setTitle] = useState("")
   const [focusKeyphrase, setFocusKeyphrase] = useState("")
   const [metaDescription, setMetaDescription] = useState("")
   const [analyzed, setAnalyzed] = useState(false)
-  const [analysisResults, setAnalysisResults] = useState(null)
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [loadingPages, setLoadingPages] = useState(true)
 
   // Fetch pages on component mount
@@ -40,7 +60,11 @@ export default function ContentAnalyzer() {
         setLoadingPages(false)
       } catch (err) {
         console.error("Error fetching pages:", err)
-        setError(err.message)
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
         setLoadingPages(false)
       }
     }
@@ -49,7 +73,7 @@ export default function ContentAnalyzer() {
   }, [])
 
   // Handle page selection
-  const handlePageChange = async (pageId) => {
+  const handlePageChange = async (pageId: string) => {
     setSelectedPageId(pageId)
 
     if (!pageId) {
@@ -76,7 +100,11 @@ export default function ContentAnalyzer() {
       }
     } catch (err) {
       console.error("Error fetching page details:", err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
     }
   }
 
@@ -115,7 +143,11 @@ export default function ContentAnalyzer() {
       setLoading(false)
     } catch (err) {
       console.error("Error analyzing content:", err)
-      setError(err.message)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
       setLoading(false)
     }
   }
@@ -297,7 +329,7 @@ export default function ContentAnalyzer() {
 
                 <TabsContent value="seo" className="space-y-4 mt-4">
                   <Alert
-                    variant={focusKeyphrase && title.includes(focusKeyphrase) ? "success" : "destructive"}
+                    variant={focusKeyphrase && title.includes(focusKeyphrase) ? "default" : "destructive"}
                     className={
                       focusKeyphrase && title.includes(focusKeyphrase)
                         ? "border-green-500 bg-green-50 text-green-800"
@@ -318,7 +350,7 @@ export default function ContentAnalyzer() {
                   </Alert>
 
                   <Alert
-                    variant={metaDescription.length >= 120 && metaDescription.length <= 160 ? "success" : "destructive"}
+                    variant={metaDescription.length >= 120 && metaDescription.length <= 160 ? "default" : "destructive"}
                     className={
                       metaDescription.length >= 120 && metaDescription.length <= 160
                         ? "border-green-500 bg-green-50 text-green-800"
@@ -341,7 +373,7 @@ export default function ContentAnalyzer() {
                   </Alert>
 
                   <Alert
-                    variant={focusKeyphrase && content.includes(focusKeyphrase) ? "success" : "destructive"}
+                    variant={focusKeyphrase && content.includes(focusKeyphrase) ? "default" : "destructive"}
                     className={
                       focusKeyphrase && content.includes(focusKeyphrase)
                         ? "border-green-500 bg-green-50 text-green-800"
@@ -364,7 +396,7 @@ export default function ContentAnalyzer() {
 
                 <TabsContent value="readability" className="space-y-4 mt-4">
                   <Alert
-                    variant={content.length > 300 ? "success" : "destructive"}
+                    variant={content.length > 300 ? "default" : "destructive"}
                     className={content.length > 300 ? "border-green-500 bg-green-50 text-green-800" : ""}
                   >
                     {content.length > 300 ? (
@@ -381,7 +413,7 @@ export default function ContentAnalyzer() {
                   </Alert>
 
                   <Alert
-                    variant={content.split(/[.!?]+/).length > 1 ? "success" : "destructive"}
+                    variant={content.split(/[.!?]+/).length > 1 ? "default" : "destructive"}
                     className={content.split(/[.!?]+/).length > 1 ? "border-green-500 bg-green-50 text-green-800" : ""}
                   >
                     {content.split(/[.!?]+/).length > 1 ? (
@@ -400,7 +432,7 @@ export default function ContentAnalyzer() {
                   <Alert
                     variant={
                       content.split(/\s+/).filter((word) => word.length > 6).length / content.split(/\s+/).length < 0.3
-                        ? "success"
+                        ? "default"
                         : "destructive"
                     }
                     className={

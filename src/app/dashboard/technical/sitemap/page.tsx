@@ -1,31 +1,175 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, Info, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, Info, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { format } from "date-fns"
 
 export default function SitemapManager() {
   const [sitemapEnabled, setSitemapEnabled] = useState(true)
   const [excludedPaths, setExcludedPaths] = useState("")
   const [sitemapGenerated, setSitemapGenerated] = useState(false)
+  const [lastGenerated, setLastGenerated] = useState<Date | null>(null)
   const [generating, setGenerating] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  
+  // Fetch sitemap config on component mount
+  useEffect(() => {
+    async function fetchSitemapConfig() {
+      try {
+        setLoading(true)
+        const response = await fetch("/api/sitemap")
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch sitemap configuration")
+        }
+
+        const config = await response.json()
+
+        setSitemapEnabled(config.enabled)
+        setExcludedPaths(config.excludedPaths || "")
+        setSitemapGenerated(!!config.lastGenerated)
+        setLastGenerated(config.lastGenerated ? new Date(config.lastGenerated) : null)
+
+        setLoading(false)
+      } catch (err) {
+        console.error("Error fetching sitemap config:", err)
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
+        setLoading(false)
+      }
+    }
+
+    fetchSitemapConfig()
+  }, [])
 
   const generateSitemap = async () => {
-    // In a real app, this would call an API to generate the sitemap
-    setGenerating(true)
+    try {
+      setGenerating(true)
+      setError(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch("/api/sitemap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          enabled: sitemapEnabled,
+          excludedPaths,
+          generate: true,
+        }),
+      })
 
-    setSitemapGenerated(true)
-    setGenerating(false)
+      if (!response.ok) {
+        throw new Error("Failed to generate sitemap")
+      }
+
+      const config = await response.json()
+
+      setSitemapGenerated(true)
+      setLastGenerated(config.lastGenerated ? new Date(config.lastGenerated) : new Date())
+      setGenerating(false)
+    } catch (err) {
+      console.error("Error generating sitemap:", err)
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+      setGenerating(false)
+    }
+  }
+
+
+
+  // Update config when settings change
+  useEffect(() => {
+    const updateConfig = async () => {
+      try {
+        setError(null)
+  
+        const response = await fetch("/api/sitemap", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            enabled: sitemapEnabled,
+            excludedPaths,
+            generate: false,
+          }),
+        })
+  
+        if (!response.ok) {
+          throw new Error("Failed to update sitemap configuration")
+        }
+      } catch (err) {
+        console.error("Error updating sitemap config:", err)
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
+      }
+    }
+    if (!loading) {
+      updateConfig()
+    }
+  }, [sitemapEnabled, excludedPaths, loading])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="flex items-center mb-6">
+          <Button variant="ghost" size="sm" asChild className="mr-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Kembali ke Dashboard
+            </Link>
+          </Button>
+          <h1 className="text-3xl font-bold">Pengelola Sitemap</h1>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Memuat konfigurasi sitemap...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="flex items-center mb-6">
+          <Button variant="ghost" size="sm" asChild className="mr-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Kembali ke Dashboard
+            </Link>
+          </Button>
+          <h1 className="text-3xl font-bold">Pengelola Sitemap</h1>
+        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   return (
@@ -176,7 +320,7 @@ export default async function sitemap({ id }) {
                 <CardTitle>Status Sitemap</CardTitle>
               </CardHeader>
               <CardContent>
-                <Alert variant="success" className="border-green-500 bg-green-50 text-green-800">
+                <Alert variant="default" className="border-green-500 bg-green-50 text-green-800">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <AlertTitle>Sitemap Berhasil Dibuat</AlertTitle>
                   <AlertDescription>
@@ -184,6 +328,11 @@ export default async function sitemap({ id }) {
                     <div className="mt-2 font-mono text-xs bg-muted p-2 rounded">
                       https://yourdomain.com/sitemap.xml
                     </div>
+                    {lastGenerated && (
+                      <div className="mt-2 text-xs">
+                        Terakhir diperbarui: {format(lastGenerated, "dd/MM/yyyy HH:mm:ss")}
+                      </div>
+                    )}
                   </AlertDescription>
                 </Alert>
               </CardContent>

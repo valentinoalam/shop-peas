@@ -85,7 +85,7 @@ export function analyzeMetaDescription(description: string): {
   tooLong: boolean
   optimal: boolean
 } {
-  const length = description.length
+  const length = description ? description.length : 0
 
   return {
     length,
@@ -106,9 +106,8 @@ export function analyzeTitle(
   containsKeyphrase: boolean
   optimal: boolean
 } {
-  const length = title.length
-  const containsKeyphrase = keyphrase ? title.toLowerCase().includes(keyphrase.toLowerCase()) : false
-
+  const length = title ? title.length : 0
+  const containsKeyphrase = keyphrase && title ? title.toLowerCase().includes(keyphrase.toLowerCase()) : false
   return {
     length,
     tooShort: length < 30,
@@ -131,7 +130,7 @@ export function generateSitemapEntries(
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: "weekly",
+    changeFrequency: "weekly" as const,
     priority: route === "/" ? 1.0 : 0.8,
   }))
 }
