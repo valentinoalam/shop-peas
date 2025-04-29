@@ -4,15 +4,15 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "contentlayer build && next dev",
-    "build": "contentlayer build && next build",
+    "dev": "contentlayer2 build && next dev",
+    "build": "contentlayer2 build && next build",
     "start": "next start",
     "lint": "next lint",
     "vercel-build": "prisma generate && npm run build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "postinstall": "contentlayer build && prisma generate"
+    "postinstall": "contentlayer2 build && prisma generate"
   },
   "prisma": {
     "seed": "node --loader ts-node/esm prisma/seed.ts"
