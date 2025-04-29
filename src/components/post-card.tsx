@@ -35,13 +35,13 @@ export default function PostCard({ post }: PostCardProps) {
         </p>
       </CardContent>
       <CardFooter>
-        {post.category && (
+        {post.categories && (
           <div className="flex gap-2 flex-wrap">
-            {/* {post.categories.map((category) => ( */}
-              <Link key={post.category} href={`/categories/${post.category.toLowerCase()}`}>
-                <Badge variant="secondary">{post.category}</Badge>
+            { post.categories.map((category) => ( 
+              <Link key={category} href={`/categories/${category.toLowerCase()}`}>
+                <Badge variant="secondary">{category}</Badge>
               </Link>
-            {/* ))} */}
+             ))} 
           </div>
         )}
       </CardFooter>
