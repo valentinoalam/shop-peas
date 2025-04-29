@@ -327,7 +327,7 @@ export default function CartPage() {
               className="bg-white rounded-lg shadow-sm p-4 flex flex-col sm:flex-row gap-4"
             >
               <div className="w-full sm:w-24 h-24">
-                <Image fill
+                <Image width={96} height={96}
                   src={item.product.image} 
                   alt={item.product.name}
                   className="w-full h-full object-contain"

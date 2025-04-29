@@ -1,8 +1,8 @@
 // app/category/[slug]/page.tsx
 import { notFound } from 'next/navigation';
-import { cache } from 'react';
 import prisma from '@/lib/prisma';
 import ProductCard from '@/components/products/product-card';
+import { unstable_cache } from 'next/cache';
 
 interface CategoryPageProps {
   params: {
@@ -10,38 +10,39 @@ interface CategoryPageProps {
   };
 }
 
-const getCategory = cache(async (slug: string) => {
+const getCategoryWithProducts = unstable_cache(
+  async (categorySlug: string) => {
+    console.log(categorySlug)
   return prisma.category.findUnique({
-    where: { slug }
-  });
-})
-const getProductsByCategory = cache(async (categorySlug: string) => {
-  return prisma.product.findMany({
-    where: {
-      category: {
-        slug: categorySlug
-      }
-    },
+    where: { slug: categorySlug },
     include: {
-      category: true,
-      reviews: {      // Needed ONLY if you calculate review count here
-        select: { id: true } // Select only 'id' for counting to be efficient
-     },
+      product: {
+        // where: { published: true },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: true,
+          reviews: {      // Needed ONLY if you calculate review count here
+            select: { id: true } // Select only 'id' for counting to be efficient
+         },
+        }
+      }
     }
-  });
+  });     
 })
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { slug } = params;
-  
+  const { slug } = await params;
+  if (!slug || typeof slug !== 'string') {
+    notFound()
+  }
+
   try {
     // Fetch the category and its products
-    const category = await getCategory(slug);
-    const products = await getProductsByCategory(slug);
-    
-    if (!category) {
+    const category = await getCategoryWithProducts(slug);
+    if (!category || !category.product?.length) {
       notFound();
     }
+    const products = category.product;
     
     return (
       <div className="container mx-auto px-4 py-8">

@@ -200,8 +200,8 @@ model Order {
   id                String        @id @default(cuid())
   userId            String?
   total             Float
-  subtotal          Float
   shippingCost      Float
+  subtotal          Float
   email             String?
   firstName         String?
   lastName          String?
