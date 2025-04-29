@@ -4,12 +4,6 @@ import PostCard from "@/components/post-card";
 import CategoryList from "@/components/category-list";
 import { notFound } from "next/navigation";
 
-interface CategoryPageProps {
-  params: {
-    category: string;
-  };
-}
-
 export function generateStaticParams() {
   const categories = Array.from(
     new Set(allPosts.flatMap((post) => post.categories || []))
@@ -20,8 +14,8 @@ export function generateStaticParams() {
   }));
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = params.category;
+export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const {category} = await params;
   
   // Get all unique categories for the navigation
   const allCategories = Array.from(
