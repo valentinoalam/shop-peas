@@ -126,10 +126,7 @@ import { CheckCircle2, ShoppingBag } from 'lucide-react'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
-interface OrderConfirmPageProps {
-  params: {
-    orderId: string;
-  };
+// interface OrderConfirmPageProps {
   // order: {
   //   id: string
   //   total: number
@@ -157,9 +154,9 @@ interface OrderConfirmPageProps {
   //     }
   //   }[]
   // } | null
-}
+// }
 
-export default async function OrderConfirmPage({ params }: OrderConfirmPageProps) {
+export default async function OrderConfirmPage({ params }:  { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
 
   try {
