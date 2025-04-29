@@ -167,7 +167,12 @@ import { prisma } from '@/lib/prisma';
 import { CartItem, OrderStatus, Prisma } from '@prisma/client';
 export type CartItemWithPrice = Prisma.CartItemGetPayload<{
   include: {
-    product: { select: { price: true } };
+    product: { 
+      select: { 
+        name: true;
+        price: true 
+      } 
+    };
   }
 }>
 export const POST = async (req: Request) => {

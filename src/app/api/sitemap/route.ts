@@ -21,7 +21,7 @@ export async function GET() {
     // If no config exists, create a default one
     if (!config || (Array.isArray(config) && config.length === 0)) {
       // Create the table if it doesn't exist
-      await prisma.$executeRaw`
+      await prisma.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS "SitemapConfig" (
           "id" TEXT PRIMARY KEY,
           "enabled" BOOLEAN DEFAULT TRUE,
@@ -30,7 +30,7 @@ export async function GET() {
           "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
           "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         )
-      `
+      `)
 
       // Insert default config
       await prisma.$executeRaw`
