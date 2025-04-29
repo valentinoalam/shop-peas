@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { allPosts } from "contentlayer/generated";
 import { compareDesc } from "date-fns";
 import PostCard from "@/components/post-card";

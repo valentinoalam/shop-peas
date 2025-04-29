@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     const { enabled, excludedPaths, generate } = body
 
     // Update config
-    const updatedConfig = await prisma.$executeRaw`
+    await prisma.$executeRaw`
       UPDATE "SitemapConfig"
       SET 
         "enabled" = ${enabled},
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     `
 
     // Get the updated config
-    const config = await prisma.$queryRaw`
+    const config: SitemapConfig  = await prisma.$queryRaw`
       SELECT * FROM "SitemapConfig" LIMIT 1
     `
 

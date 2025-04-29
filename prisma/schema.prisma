@@ -277,8 +277,8 @@ model BlogPost {
 
   author          String
 
-  blogCategoryId  String?
-  blogCategory    BlogCategory? @relation(fields: [blogCategoryId], references: [id], onDelete: SetNull) // If category deleted, set post category to null
+  // blogCategoryId  String?
+  blogCategory    BlogCategory[] // ? @relation(fields: [blogCategoryId], references: [id], onDelete: SetNull) // If category deleted, set post category to null
 
   tags     BlogTag[] // Many-to-many relationship with tags
 
@@ -286,7 +286,7 @@ model BlogPost {
 
   @@index([slug])
   @@index([author])
-  @@index([blogCategoryId])
+  // @@index([blogCategoryId])
   @@index([published, createdAt]) // For listing published posts by date
 }
 
