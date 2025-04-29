@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { Product } from '@prisma/client'
 import ProductFilter from '@/components/products/product-filter'
 import ProductCard from '@/components/products/product-card'
 import { Button } from '@/components/ui/button'
+import { ProductWithDetails } from '@/components/products/product-details'
 
 interface ProductsPageProps {
-  products: Product[]
+  products: ProductWithDetails[]
   categories: string[]
   initialFilters: {
     categories: string[]
@@ -37,7 +37,7 @@ export default function ProductsPageClient({
     
     // Filter by categories
     if (selectedCategories.length > 0) {
-      result = result.filter(product => selectedCategories.includes(product.category))
+      result = result.filter(product => selectedCategories.includes(product.category.name))
     }
     
     // Filter by price range
@@ -54,7 +54,7 @@ export default function ProductsPageClient({
       case "rating-desc":
         return result.sort((a, b) => b.rating - a.rating)
       case "popular":
-        return result.sort((a, b) => b.reviews - a.reviews)
+        return result.sort((a, b) => b.reviews.length - a.reviews.length)
       default:
         return result
     }
