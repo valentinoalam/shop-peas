@@ -32,12 +32,11 @@ const getCategories = cache(async () => {
   return categories.map(c => c.name)
 })
 
-export default async function ProductsPage(
-  props: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-  }
-) {
-  const searchParams = await props.searchParams;
+export default async function ProductsPage({
+  searchParams
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
   const productsPromise = getProducts()
   const categoriesPromise = getCategories()
 
@@ -46,16 +45,22 @@ export default async function ProductsPage(
     categoriesPromise
   ])
 
-  const categoryFilter = searchParams.category?.toString() || ''
-  const sortParam = searchParams?.sort || 'price-asc'
-  const sortBy = typeof sortParam === 'string' ? sortParam : sortParam[0] || 'price-asc'
+  const categoryParam = searchParams.category
+  const categoryFilter = typeof categoryParam === 'string' ? 
+    categoryParam : categoryParam?.[0] || ''
+  const sortParam = searchParams.sort || 'price-asc'
+  const sortBy = typeof sortParam === 'string' 
+    ? sortParam 
+    : sortParam[0] || 'price-asc'
 
-  const minPriceParam = searchParams?.minPrice || '0'
-  const minPrice = Number(typeof minPriceParam === 'string' ? minPriceParam : minPriceParam[0] || '0')
+  // Unified parameter handling for prices
+  const getPriceParam = (param: string | string[] | undefined, fallback: string) => 
+    Number(
+      (typeof param === 'string' ? param : param?.[0] || fallback)
+    )
 
-  const maxPriceParam = searchParams?.maxPrice || '600'
-  const maxPrice = Number(typeof maxPriceParam === 'string' ? maxPriceParam : maxPriceParam[0] || '600')
-
+  const minPrice = getPriceParam(searchParams.minPrice, '0')
+  const maxPrice = getPriceParam(searchParams.maxPrice, '600')
 
   return (
     <div className="container mx-auto px-4 py-8">
