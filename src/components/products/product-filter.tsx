@@ -65,7 +65,7 @@
 //     setIsSheetOpen(false);
 //   };
   
-//   const maxPrice = 600; // Based on our product data
+//   const maxPrice = maxPrice; // Based on our product data
   
 //   // Desktop filter view
 //   const DesktopFilter = () => (
@@ -303,7 +303,7 @@
 //     setIsSheetOpen(false)
 //   }
   
-//   const maxPrice = 600 // Based on our product data
+//   const maxPrice = maxPrice // Based on our product data
   
 //   // Desktop filter view
 //   const DesktopFilter = () => (
@@ -486,11 +486,17 @@ import {
 } from '@/components/ui/accordion'
 import { formatCurrency } from '@/lib/utils'
 
+interface Category {
+  id: number
+  name: string
+}
+
 interface ProductFilterProps {
-  categories: string[]
-  selectedCategories: string[]
-  setSelectedCategories: (categories: string[]) => void
+  categories: Category[]
+  selectedCategories: number[]
+  setSelectedCategories: (categories: number[]) => void
   priceRange: [number, number]
+  maxPrice: number
   setPriceRange: (range: [number, number]) => void
   sortBy: string
   setSortBy: (sort: string) => void
@@ -505,15 +511,16 @@ export default function ProductFilter({
   setPriceRange,
   sortBy,
   setSortBy,
-  onClearFilters
+  onClearFilters,
+  maxPrice
 }: ProductFilterProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>(['categories', 'price', 'sort'])
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (categoryId: number) => {
     setSelectedCategories(
-      selectedCategories.includes(category)
-        ? selectedCategories.filter(c => c !== category)
-        : [...selectedCategories, category]
+      selectedCategories.includes(categoryId)
+        ? selectedCategories.filter(c => c !== categoryId)
+        : [...selectedCategories, categoryId]
     )
   }
 
@@ -523,7 +530,7 @@ export default function ProductFilter({
 
   const hasActiveFilters = selectedCategories.length > 0 || 
     priceRange[0] > 0 || 
-    priceRange[1] < 600 || 
+    priceRange[1] < maxPrice || 
     sortBy !== "price-asc"
 
   return (
@@ -555,17 +562,17 @@ export default function ProductFilter({
           <AccordionContent>
             <div className="space-y-2 pt-2">
               {categories.map(category => (
-                <div key={category} className="flex items-center space-x-2">
+                <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox 
-                    id={`category-${category}`}
-                    checked={selectedCategories.includes(category)}
-                    onCheckedChange={() => toggleCategory(category)}
+                    id={`category-${category.id}`}
+                    checked={selectedCategories.includes(category.id)}
+                    onCheckedChange={() => toggleCategory(category.id)}
                   />
                   <Label 
-                    htmlFor={`category-${category}`}
+                    htmlFor={`category-${category.id}`}
                     className="text-sm font-normal cursor-pointer"
                   >
-                    {category}
+                    {category.name}
                   </Label>
                 </div>
               ))}
@@ -580,11 +587,10 @@ export default function ProductFilter({
           <AccordionContent>
             <div className="space-y-6 pt-2">
               <Slider
-                defaultValue={[priceRange[0], priceRange[1]]}
                 min={0}
-                max={600}
+                max={maxPrice}
                 step={10}
-                value={[priceRange[0], priceRange[1]]}
+                value={priceRange}
                 onValueChange={handlePriceChange}
               />
               <div className="flex justify-between items-center">

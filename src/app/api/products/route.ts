@@ -2,45 +2,27 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 3600
+export const revalidate = 3600 // Revalidate this API route every hour
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
     
-    // Parse filters
-    const category = searchParams.get('category') || undefined
-    const minPrice = Number(searchParams.get('minPrice')) || 0
-    const maxPrice = Number(searchParams.get('maxPrice')) || 1000
-    const sort = searchParams.get('sort')?.split('-') || ['price', 'asc']
-
-    // Build Prisma query
+    // Fetch all products with their categories and reviews
     const products = await prisma.product.findMany({
-      where: {
-        category: { name: category },
-        price: { gte: minPrice, lte: maxPrice }
-      },
       include: {
         category: true,
-        reviews: { select: { id: true } }
-      },
-      orderBy: { [sort[0]]: sort[1] }
-    })
-
-    return NextResponse.json({
-      data: JSON.parse(JSON.stringify(products)),
-      error: null
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=3600',
-        'CDN-Cache-Control': 'public, s-maxage=3600'
+        reviews: {
+          select: { id: true }
+        },
       }
     })
+
+    // Serialize before sending
+    return NextResponse.json(JSON.parse(JSON.stringify(products)))
   } catch (error) {
-    console.error("Error fetching page:", error)
+    console.error('Error fetching products:', error)
     return NextResponse.json(
-      { data: null, error: 'Failed to fetch products' },
+      { error: 'Failed to fetch products' },
       { status: 500 }
     )
   }
