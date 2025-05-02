@@ -1,7 +1,7 @@
 import type { DefaultSession, NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import prisma from "@/lib/prisma"
-import { compare } from "bcrypt"
+import { compare, hash } from "bcrypt"
 import NextAuth from "next-auth"
 declare module "next-auth" {
   interface Session {
@@ -62,8 +62,8 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    //     signOut: '/auth/signout',
-    // error: '/auth/error',
+    signOut: "/",
+    error: "/login",
   },
   callbacks: {
     async session({ session, token }) {
@@ -90,3 +90,36 @@ export const authOptions: NextAuthOptions = {
 }
 
 export const { auth } = NextAuth(authOptions);
+
+// Hash password
+export async function hashPassword(password: string) {
+  return await hash(password, 10)
+}
+
+// Verify password
+export async function verifyPassword(password: string, hashedPassword: string) {
+  return await compare(password, hashedPassword)
+}
+
+// Register a new user
+export async function registerUser(name: string, email: string, password: string) {
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  })
+
+  if (existingUser) {
+    throw new Error("User already exists")
+  }
+
+  const hashedPassword = await hashPassword(password)
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+    },
+  })
+
+  return user
+}

@@ -14,6 +14,7 @@ import { ShoppingBag, ChevronRight, Clock, CreditCard, Truck } from 'lucide-reac
 import Image from 'next/image'
 import ProductCard from '@/components/products/product-card'
 import { Suspense } from 'react'
+import { cn } from "@/lib/utils";
 // import { Product } from '@prisma/client'
 async function getFeaturedProducts() {
   return prisma.product.findMany({
@@ -114,11 +115,14 @@ export default async function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Suspense fallback={<div>Loading categories...</div>}>
-            {categories.map(category => (
+            {categories.map((category, index) => (
               <Link 
                 href={`/products?category=${category}`} 
                 key={category}
-                className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105"
+                className={cn(
+                  categories.length % 3 === 1 && index+1 === categories.length? "lg:col-start-2":"",
+                  "bg-white w-full rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105"
+                )}
               >
                 <div className="relative h-48">
                   <Image fill

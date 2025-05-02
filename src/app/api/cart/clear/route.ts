@@ -18,21 +18,9 @@ export async function POST() {
   try {
     const userId = session.user.id;
     
-    // Find user's cart
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-    });
-
-    if (!cart) {
-      return NextResponse.json(
-        { error: 'Cart not found' },
-        { status: 404 }
-      );
-    }
-
     // Delete all cart items
     await prisma.cartItem.deleteMany({
-      where: { cartId: cart.id },
+      where: { userId: userId },
     });
 
     return NextResponse.json(

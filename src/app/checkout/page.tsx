@@ -17,53 +17,126 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { PaymentSummary } from "@/components/payment/payment-summary"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
+import { useCart } from "@/context/cart-context"
+// Common reusable validations
+const phoneRegex = /^\+?[1-9]\d{1,14}$/; // E.164 format
+const zipRegex = /^\d{5}(?:[-\s]\d{4})?$/; // US ZIP code format
+const cardNumberRegex = /^[\d\s-]{13,19}$/;
+const cvvRegex = /^\d{3,4}$/;
 
-// Define the form schema
-// const shippingFormSchema = z.object({
-//   firstName: z.string().min(2, "First name must be at least 2 characters"),
-//   lastName: z.string().min(2, "Last name must be at least 2 characters"),
-//   email: z.string().email("Please enter a valid email address"),
-//   phone: z.string().min(10, "Please enter a valid phone number"),
-//   address: z.string().min(5, "Please enter your street address"),
-//   city: z.string().min(2, "Please enter your city"),
-//   state: z.string().min(2, "Please enter your state/province"),
-//   zip: z.string().min(5, "Please enter a valid postal/zip code"),
-//   country: z.string().min(2, "Please select your country"),
-// });
+// Address Schema (reusable)
+const addressSchema = z.object({
+  street: z.string()
+    .min(5, "Street address must be at least 5 characters")
+    .max(100),
+  city: z.string()
+    .min(2, "City must be at least 2 characters")
+    .max(50),
+  state: z.string()
+    .min(2, "State must be at least 2 characters")
+    .max(50),
+  zip: z.string()
+    .regex(zipRegex, "Invalid ZIP/postal code format")
+    .transform(val => val.replace(/\s+/g, '')),
+  country: z.string()
+    .min(2, "Please select a valid country")
+    .default("US")
+});
 
-// Credit card form schema
-// const creditCardSchema = z.object({
-//   cardName: z.string().min(2, "Please enter the name on card"),
-//   cardNumber: z.string().min(13, "Please enter a valid card number"),
-//   expiryDate: z.string().regex(/^\d{2}\/\d{2}$/, "Please use MM/YY format"),
-//   cvv: z.string().min(3, "Please enter a valid CVV/CVC"),
-// });
+// Payment Method types
+const paymentMethodEnum = z.enum([
+  "credit_card",
+  "midtrans",
+  "paypal",
+  "stripe",
+  "alfamart",
+  "indomaret",
+  "virtual_account"
+]);
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
-  address: z.string().min(5, { message: "Address must be at least 5 characters." }),
-  paymentMethod: z.enum(["credit_card", "midtrans", "paypal", "stripe", "alfamart", "indomaret", "virtual_account"]),
-  bankCode: z.string().optional(),
-})
+// Credit Card Schema (reusable)
+const creditCardSchema = z.object({
+  cardName: z.string()
+    .min(2, "Card name must be at least 2 characters")
+    .max(50),
+  cardNumber: z.string()
+    .regex(cardNumberRegex, "Invalid card number")
+    .transform(val => val.replace(/[\s-]/g, '')),
+  expiryDate: z.string()
+    .regex(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, "Invalid MM/YY format")
+    .refine(val => {
+      const [month, year] = val.split('/');
+      const expiry = new Date(`20${year}`, parseInt(month));
+      return expiry > new Date();
+    }, "Card has expired"),
+  cvv: z.string()
+    .regex(cvvRegex, "Invalid CVV/CVC")
+});
 
-// type ShippingFormValues = z.infer<typeof shippingFormSchema>;
-// type CreditCardFormValues = z.infer<typeof creditCardSchema>;
+// Main Form Schema
+export const checkoutFormSchema = z.object({
+  customer: z.object({
+    firstName: z.string()
+      .min(2, "First name must be at least 2 characters")
+      .max(50)
+      .transform(val => val.trim()),
+    lastName: z.string()
+      .min(2, "Last name must be at least 2 characters")
+      .max(50)
+      .transform(val => val.trim()),
+    email: z.string()
+      .email("Invalid email address")
+      .transform(val => val.toLowerCase().trim()),
+    phone: z.string()
+      .regex(phoneRegex, "Invalid phone number format")
+      .transform(val => val.replace(/[^\d+]/g, ''))
+  }),
+  shippingAddress: addressSchema,
+  billingAddress: addressSchema.optional(),
+  paymentMethod: paymentMethodEnum,
+  paymentDetails: z.discriminatedUnion("method", [
+    z.object({
+      method: z.literal("credit_card"),
+      card: creditCardSchema
+    }),
+    z.object({
+      method: z.literal("virtual_account"),
+      bankCode: z.string().min(3, "Bank code required")
+    }),
+    // Add other payment methods as needed
+    z.object({
+      method: z.literal("paypal")
+    })
+  ])
+}).refine(data => {
+  // Custom validation example: Billing address required for credit cards
+  if (data.paymentDetails.method === "credit_card" && !data.billingAddress) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Billing address required for credit card payments",
+  path: ["billingAddress"]
+});
+
+// Type exports
+export type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
+export type AddressValues = z.infer<typeof addressSchema>;
+export type CreditCardValues = z.infer<typeof creditCardSchema>;
 
 export default function CheckoutPage() {
   const router = useRouter()
-  // const { toast } = useToast();
-  // const { 
-  //   items, 
-  //   subtotal, 
-  //   shippingMethod,
-  //   shippingCost,
-  //   paymentMethod,
-  //   setPaymentMethod,
-  //   clearCart
-  // } = useCart();
+  const { toast } = useToast();
+  const { 
+    items, 
+    subtotal, 
+    shippingMethod,
+    shippingCost,
+    paymentMethod,
+    setPaymentMethod,
+    clearCart
+  } = useCart();
   //   const [step, setStep] = useState<"shipping" | "payment" | "review">("shipping");
   const [isProcessing, setIsProcessing] = useState(false)
   const [showBankSelect, setShowBankSelect] = useState(false)

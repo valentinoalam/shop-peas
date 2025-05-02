@@ -1,10 +1,22 @@
 import { PrismaClient } from '@prisma/client'
+import { hashPassword } from "@/lib/auth"
 import { categories, products } from './data/products.js'
+import { pages } from './data/pages'
 import { shippingMethods } from './data/shipping.js'
 import { paymentMethods } from './data/payment.js'
 import { generateArticleSchema, generateFAQSchema, generateProductSchema } from '@/lib/seo-utils.js'
+import { analyses } from './data/analyses.js'
 
 const prisma = new PrismaClient()
+
+// Sample user data
+const users = [
+  {
+    name: "Demo User",
+    email: "demo@example.com",
+    password: "password123",
+  },
+]
 
 async function main() {
   console.log("🌱 Starting seeding...")
@@ -22,16 +34,31 @@ async function main() {
   await prisma.redirect.deleteMany({})
   await prisma.page.deleteMany({})
 
-// Seed categories
-for (const category of categories) {
-  await prisma.category.create({
-    data: {
-      name: category.name,
-      slug: slugify(category.name),
-      description:category.description
-    }
-  })
-}
+  // Create users
+  for (const user of users) {
+    const hashedPassword = await hashPassword(user.password)
+
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {},
+      create: {
+        name: user.name,
+        email: user.email,
+        password: hashedPassword,
+      },
+    })
+  }
+
+  // Seed categories
+  for (const category of categories) {
+    await prisma.category.create({
+      data: {
+        name: category.name,
+        slug: slugify(category.name),
+        description:category.description
+      }
+    })
+  }
 
   // Seed products
   for (const product of products) {
@@ -76,130 +103,100 @@ for (const category of categories) {
   }
   // Create pages
   console.log("📄 Creating pages...")
-  const pages = await Promise.all([
-    prisma.page.create({
+  for (const page of pages) {
+    await prisma.page.create({
       data: {
-        path: "/",
-        title: "Home | Next.js SEO Analyzer",
-        description:
-          "A comprehensive SEO tool for Next.js applications to improve your search engine rankings and visibility.",
-        keywords: "seo, next.js, analyzer, search engine optimization",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/about",
-        title: "About Us | Next.js SEO Analyzer",
-        description: "Learn more about our SEO analysis tools and how they can help improve your website visibility.",
-        keywords: "about, seo tools, next.js seo",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/blog",
-        title: "Blog | Next.js SEO Analyzer",
-        description: "Read our latest articles about SEO best practices and Next.js optimization techniques.",
-        keywords: "blog, seo tips, next.js optimization",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/contact",
-        title: "Contact | Next.js SEO Analyzer",
-        description: "Get in touch with our team for any questions about our SEO tools.",
-        keywords: "contact, support, help",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/features",
-        title: "Features | Next.js SEO Analyzer",
-        // Intentionally missing description to test UI handling
-        keywords: "features, seo tools, functionality",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/pricing",
-        title: "Pricing | Next.js SEO Analyzer",
-        description: "Affordable plans for businesses of all sizes. Boost your SEO performance today.",
-        keywords: "pricing, plans, subscription",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/blog/seo-basics",
-        title: "SEO Basics: Getting Started | Blog",
-        description: "Learn the fundamentals of SEO and how to implement them in your Next.js application.",
-        keywords: "seo basics, beginners guide, fundamentals",
-      },
-    }),
-    prisma.page.create({
-      data: {
-        path: "/blog/next-js-performance",
-        title: "Optimizing Next.js Performance | Blog",
-        description: "Tips and tricks to improve the performance of your Next.js application for better SEO.",
-        keywords: "next.js, performance, optimization",
-      },
-    }),
-  ])
+        path: page.path,
+        title: page.title,
+        description: page.description,
+        keywords: page.keywords
+      }
+    })
+  }
+  // const pages = await Promise.all([
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/",
+  //       title: "Home | Next.js SEO Analyzer",
+  //       description:
+  //         "A comprehensive SEO tool for Next.js applications to improve your search engine rankings and visibility.",
+  //       keywords: "seo, next.js, analyzer, search engine optimization",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/about",
+  //       title: "About Us | Next.js SEO Analyzer",
+  //       description: "Learn more about our SEO analysis tools and how they can help improve your website visibility.",
+  //       keywords: "about, seo tools, next.js seo",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/blog",
+  //       title: "Blog | Next.js SEO Analyzer",
+  //       description: "Read our latest articles about SEO best practices and Next.js optimization techniques.",
+  //       keywords: "blog, seo tips, next.js optimization",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/contact",
+  //       title: "Contact | Next.js SEO Analyzer",
+  //       description: "Get in touch with our team for any questions about our SEO tools.",
+  //       keywords: "contact, support, help",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/features",
+  //       title: "Features | Next.js SEO Analyzer",
+  //       // Intentionally missing description to test UI handling
+  //       keywords: "features, seo tools, functionality",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/pricing",
+  //       title: "Pricing | Next.js SEO Analyzer",
+  //       description: "Affordable plans for businesses of all sizes. Boost your SEO performance today.",
+  //       keywords: "pricing, plans, subscription",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/blog/seo-basics",
+  //       title: "SEO Basics: Getting Started | Blog",
+  //       description: "Learn the fundamentals of SEO and how to implement them in your Next.js application.",
+  //       keywords: "seo basics, beginners guide, fundamentals",
+  //     },
+  //   }),
+  //   prisma.page.create({
+  //     data: {
+  //       path: "/blog/next-js-performance",
+  //       title: "Optimizing Next.js Performance | Blog",
+  //       description: "Tips and tricks to improve the performance of your Next.js application for better SEO.",
+  //       keywords: "next.js, performance, optimization",
+  //     },
+  //   }),
+  // ])
 
   console.log(`✅ Created ${pages.length} pages`)
 
   // Create analyses
   console.log("🔍 Creating analyses...")
-  const analyses = await Promise.all([
-    prisma.analysis.create({
+  const pagesData = await prisma.page.findMany()
+  for (const [index, analyse] of analyses.entries()) {
+    await prisma.analysis.create({
       data: {
-        pageId: pages[0].id,
-        content:
-          "Welcome to Next.js SEO Analyzer. Our tool helps you optimize your Next.js applications for search engines. With our comprehensive analysis, you can improve your website visibility and rankings.",
-        focusKeyphrase: "Next.js SEO",
-        seoScore: 85,
-        readabilityScore: 90,
-      },
-    }),
-    prisma.analysis.create({
-      data: {
-        pageId: pages[1].id,
-        content:
-          "Our team of SEO experts has developed this tool specifically for Next.js applications. We understand the unique challenges of optimizing React-based websites and have created solutions to address them.",
-        focusKeyphrase: "SEO tools",
-        seoScore: 75,
-        readabilityScore: 88,
-      },
-    }),
-    prisma.analysis.create({
-      data: {
-        pageId: pages[2].id,
-        content:
-          "In our latest blog post, we discuss the importance of meta tags in Next.js applications. Learn how to properly implement title tags, meta descriptions, and Open Graph tags for better SEO.",
-        focusKeyphrase: "meta tags",
-        seoScore: 82,
-        readabilityScore: 78,
-      },
-    }),
-    prisma.analysis.create({
-      data: {
-        pageId: pages[6].id,
-        content:
-          "Search Engine Optimization (SEO) is crucial for any website. This guide covers the basics of SEO for Next.js applications, including meta tags, structured data, and performance optimization. By following these guidelines, you can improve your website's visibility in search engine results.",
-        focusKeyphrase: "SEO basics",
-        seoScore: 92,
-        readabilityScore: 85,
-      },
-    }),
-    prisma.analysis.create({
-      data: {
-        pageId: pages[7].id,
-        content:
-          "Next.js is a powerful framework for building React applications, but it requires proper optimization for the best performance. This article covers techniques like image optimization, code splitting, and server-side rendering to improve your Next.js application's performance and SEO.",
-        focusKeyphrase: "Next.js performance",
-        seoScore: 88,
-        readabilityScore: 82,
-      },
-    }),
-  ])
+        pageId: pagesData[index].id,
+        content: analyse.content,
+        focusKeyphrase: analyse.focusKeyphrase,
+        seoScore: analyse.seoScore,
+        readabilityScore: analyse.readabilityScore
+      }
+    })
+  }
 
   console.log(`✅ Created ${analyses.length} analyses`)
 
@@ -287,21 +284,21 @@ for (const category of categories) {
   const schemas = await Promise.all([
     prisma.schemaMarkup.create({
       data: {
-        pageId: pages[6].id,
+        pageId: pagesData[6].id,
         type: "Article",
         data: articleSchemaData,
       },
     }),
     prisma.schemaMarkup.create({
       data: {
-        pageId: pages[5].id,
+        pageId: pagesData[5].id,
         type: "Product",
         data: productSchemaData,
       },
     }),
     prisma.schemaMarkup.create({
       data: {
-        pageId: pages[0].id,
+        pageId: pagesData[0].id,
         type: "FAQPage",
         data: faqSchemaData,
       },
