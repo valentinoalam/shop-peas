@@ -5,6 +5,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+}
+
+export function getLastWord(text: string) {
+  if (!text || text.trim() === "") {
+    return ""; // Handle empty or whitespace-only strings
+  }
+  const words = text.trim().split(/\s+/); // Split by one or more whitespace characters
+  return words[words.length - 1];
+}
 // Helper functions for analytics data processing
 
 // Format date strings from YYYYMMDD to MM/DD/YYYY

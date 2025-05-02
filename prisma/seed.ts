@@ -6,6 +6,7 @@ import { shippingMethods } from './data/shipping.js'
 import { paymentMethods } from './data/payment.js'
 import { generateArticleSchema, generateFAQSchema, generateProductSchema } from '@/lib/seo-utils.js'
 import { analyses } from './data/analyses.js'
+import { slugify } from '@/lib/utils.js'
 
 const prisma = new PrismaClient()
 
@@ -83,7 +84,7 @@ async function main() {
   for (const method of shippingMethods) {
     await prisma.shippingMethod.create({
       data: {
-        id: method.id,
+        id: slugify(method.name),
         name: method.name,
         price: method.price,
         estimated: method.estimated
@@ -113,73 +114,6 @@ async function main() {
       }
     })
   }
-  // const pages = await Promise.all([
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/",
-  //       title: "Home | Next.js SEO Analyzer",
-  //       description:
-  //         "A comprehensive SEO tool for Next.js applications to improve your search engine rankings and visibility.",
-  //       keywords: "seo, next.js, analyzer, search engine optimization",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/about",
-  //       title: "About Us | Next.js SEO Analyzer",
-  //       description: "Learn more about our SEO analysis tools and how they can help improve your website visibility.",
-  //       keywords: "about, seo tools, next.js seo",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/blog",
-  //       title: "Blog | Next.js SEO Analyzer",
-  //       description: "Read our latest articles about SEO best practices and Next.js optimization techniques.",
-  //       keywords: "blog, seo tips, next.js optimization",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/contact",
-  //       title: "Contact | Next.js SEO Analyzer",
-  //       description: "Get in touch with our team for any questions about our SEO tools.",
-  //       keywords: "contact, support, help",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/features",
-  //       title: "Features | Next.js SEO Analyzer",
-  //       // Intentionally missing description to test UI handling
-  //       keywords: "features, seo tools, functionality",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/pricing",
-  //       title: "Pricing | Next.js SEO Analyzer",
-  //       description: "Affordable plans for businesses of all sizes. Boost your SEO performance today.",
-  //       keywords: "pricing, plans, subscription",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/blog/seo-basics",
-  //       title: "SEO Basics: Getting Started | Blog",
-  //       description: "Learn the fundamentals of SEO and how to implement them in your Next.js application.",
-  //       keywords: "seo basics, beginners guide, fundamentals",
-  //     },
-  //   }),
-  //   prisma.page.create({
-  //     data: {
-  //       path: "/blog/next-js-performance",
-  //       title: "Optimizing Next.js Performance | Blog",
-  //       description: "Tips and tricks to improve the performance of your Next.js application for better SEO.",
-  //       keywords: "next.js, performance, optimization",
-  //     },
-  //   }),
-  // ])
 
   console.log(`✅ Created ${pages.length} pages`)
 
@@ -367,16 +301,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
-
-
-
-function slugify(text: string) {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w-]+/g, '') // Remove all non-word chars
-    .replace(/--+/g, '-') // Replace multiple - with single -
-    .replace(/^-+/, '') // Trim - from start of text
-    .replace(/-+$/, ''); // Trim - from end of text
-}
